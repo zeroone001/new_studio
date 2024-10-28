@@ -1,7 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
-
+// 用于webworker的第三方封装库
 import * as Comlink from "comlink";
 
 import { abortSignalTransferHandler } from "@foxglove/comlink-transfer-handlers";
@@ -30,18 +30,21 @@ export class WorkerIterableSource implements IIterableSource {
 
   #thread?: Worker;
   #worker?: Comlink.Remote<WorkerIterableSourceWorker>;
-
+  // 构造函数，放了一个initWorker函数在里面
   public constructor(args: ConstructorArgs) {
     this.#args = args;
   }
 
   public async initialize(): Promise<Initalization> {
-    // Note: this launches the worker.
+    console.log("WorkerIterableSource--initialize");
+
+    // 注意：这将启动工作者。
     this.#thread = this.#args.initWorker();
 
     const initialize = Comlink.wrap<
       (args: IterableSourceInitializeArgs) => Comlink.Remote<WorkerIterableSourceWorker>
     >(this.#thread);
+    // const initialize = Comlink.wrap(this.#thread);
 
     const worker = (this.#worker = await initialize(this.#args.initArgs));
     return await worker.initialize();

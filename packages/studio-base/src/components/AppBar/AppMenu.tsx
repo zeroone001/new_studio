@@ -62,8 +62,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
     setNestedMenu(id);
   }, []);
 
-  // FILE
-
+  // FILE 下面多个item的点击事件
   const fileItems = useMemo(() => {
     const items: AppBarMenuItem[] = [
       {
@@ -96,12 +95,13 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
       { type: "divider" },
       { type: "item", label: t("recentDataSources"), key: "recent-sources", disabled: true },
     ];
-
+    // 最近使用的数据源
     recentSources.slice(0, 5).map((recent) => {
       items.push({
         type: "item",
         key: recent.id,
         onClick: () => {
+          console.log("recentSources-selectRecent-->>>1", recent.id);
           selectRecent(recent.id);
           handleNestedMenuClose();
         },
@@ -245,6 +245,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
           open={nestedMenu === "app-menu-file"}
           id="app-menu-file"
         >
+          {/* 文件 */}
           {t("file")}
         </NestedMenuItem>
         <NestedMenuItem
@@ -253,6 +254,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
           open={nestedMenu === "app-menu-view"}
           id="app-menu-view"
         >
+          {/* 查看 */}
           {t("view")}
         </NestedMenuItem>
         <NestedMenuItem
@@ -261,6 +263,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
           open={nestedMenu === "app-menu-help"}
           id="app-menu-help"
         >
+          {/* 帮助 */}
           {t("help")}
         </NestedMenuItem>
       </Menu>

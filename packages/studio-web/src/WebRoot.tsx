@@ -29,6 +29,7 @@ export function WebRoot(props: {
   AppBarComponent?: (props: AppBarProps) => JSX.Element;
   children: JSX.Element;
 }): JSX.Element {
+  // start
   const appConfiguration = useMemo(
     () =>
       new LocalStorageAppConfiguration({
@@ -38,7 +39,7 @@ export function WebRoot(props: {
       }),
     [],
   );
-
+  // 这个文件这里是最关键的，这一层主要是提供了dataSources
   const dataSources = useMemo(() => {
     const sources = [
       new Ros1LocalBagDataSourceFactory(),

@@ -75,6 +75,7 @@ export class CameraStateSettings extends SceneExtension implements ICameraHandle
     renderer.settings.errors.on("remove", this.#handleErrorChange);
 
     this.#canvas = canvas;
+    // 这里 创建相机
     this.#perspectiveCamera = new THREE.PerspectiveCamera();
     this.#orthographicCamera = new THREE.OrthographicCamera();
     this.#cameraGroup = new THREE.Group();
@@ -321,7 +322,7 @@ export class CameraStateSettings extends SceneExtension implements ICameraHandle
     }
   };
 
-  // this extension has  NO RENDERABLES so the parent startFrame would do nothing
+  // 该扩展没有可重写项，因此父startFrame将不执行任何操作
   public override startFrame(
     currentTime: bigint,
     renderFrameId: AnyFrameId,

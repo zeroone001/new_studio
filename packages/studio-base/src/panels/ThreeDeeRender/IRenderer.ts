@@ -209,7 +209,7 @@ export class InstancedLineMaterial extends THREE.LineBasicMaterial {
     this.defines.USE_INSTANCING = true;
   }
 }
-
+// Renderer 类的返回值
 export interface IRenderer extends EventEmitter<RendererEvents> {
   readonly interfaceMode: InterfaceMode;
   readonly gl: THREE.WebGLRenderer;
@@ -241,11 +241,11 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
   measurementTool: MeasurementTool;
   publishClickTool: PublishClickTool;
 
-  /** only public for testing - prefer to use `getCameraState` instead */
+  /** 仅公开用于测试-更喜欢使用“getCameraState” */
   cameraHandler: ICameraHandler;
 
-  // Are we connected to a ROS data source? Normalize coordinate frames if so by
-  // stripping any leading "/" prefix. See `normalizeFrameId()` for details.
+  // 我们是否连接到ROS数据源？规格化坐标系（如果是）
+  // 去掉任何前导的“/”前缀。有关详细信息，请参见“normalizeFrameId（）”。
   ros: boolean;
 
   colorScheme: "dark" | "light";
@@ -253,10 +253,10 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
   transformTree: TransformTree;
   coordinateFrameList: SelectEntry[];
   currentTime: bigint;
-  /** Coordinate frame that transforms are applied through to the follow frame. Should be unchanging. */
+  /** 变换应用于后续帧的坐标系。应该是不变的。 */
   fixedFrameId: string | undefined;
   /**
-   * The frameId that we _want_ to follow and render in if it exists.
+   * 我们想要遵循并在其中渲染的frameId（如果存在的话）。
    */
   readonly followFrameId: string | undefined;
 
@@ -264,7 +264,7 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
   markerPool: MarkerPool;
   sharedGeometry: SharedGeometry;
 
-  /** Optional analytics API to log events in Renderer or SceneExtensions */
+  /** 用于在呈现器或场景扩展中记录事件的可选分析API */
   analytics?: IAnalytics;
   setAnalytics(analytics: IAnalytics): void;
   enableImageOnlySubscriptionMode: () => void;
@@ -282,18 +282,18 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
   setCurrentTime(newTimeNs: bigint): void;
 
   /**
-   * Updates renderer state according to seek delta. Handles clearing of future state and resetting of allFrames cursor if seeked backwards
-   * Should be called after `setCurrentTime` as been called
+   * 根据查找增量更新渲染器状态。如果向后看，则处理未来状态的清除和所有帧光标的重置
+   * 应在调用“setCurrentTime”之后调用
    * @param oldTime used to determine if seeked backwards
    */
   handleSeek(oldTimeNs: bigint): void;
 
   /**
-   * Clears:
-   *  - Rendered objects (a backfill is performed to ensure that they are regenerated with new messages from current frame)
-   *  - Errors in settings. Messages that caused errors in the past are cleared, but will be re-added if they are still causing errors when read in.
-   *  - [Optional] Transform tree. This should be set to true when a seek to a previous time is performed in order to flush potential future state to the newly set time.
-   *  - [Optional] allFramesCursor. This is the cursor that iterates through allFrames up to currentTime. It should be reset when seeking backwards to avoid keeping future state.
+   * 清除：
+   *-渲染对象（执行回填以确保使用当前帧中的新消息重新生成这些对象）
+   *-设置错误。过去导致错误的消息会被清除，但如果在读入时仍导致错误，则会重新添加。
+   *-[可选]转换树。当执行对先前时间的搜索以将潜在的未来状态刷新到新设置的时间时，这应该设置为真。
+   *-[可选]allFramesCursor。这是在截至currentTime的所有帧中迭代的光标。向后搜索时应重置它，以避免保持未来状态。
    * @param {Object} params - modifiers to the clear operation
    * @param {boolean} params.clearTransforms - whether to clear the transform tree. This should be set to true when a seek to a previous time is performed in order
    * order to flush potential future state to the newly set time.
@@ -302,7 +302,7 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
   clear(args: { clearTransforms?: boolean; resetAllFramesCursor?: boolean }): void;
 
   /**
-   * Iterates through allFrames and handles messages with a receiveTime <= currentTime
+   * 遍历所有帧并使用receiveTime处理消息<=currentTime
    * @param allFrames - array of all preloaded messages
    * @returns {boolean} - whether the allFramesCursor has been updated and new messages were read in
    */
@@ -357,7 +357,7 @@ export interface IRenderer extends EventEmitter<RendererEvents> {
 
   addCoordinateFrame(frameId: string): void;
 
-  // Create a new transform and add it to the renderer's TransformTree
+  // 创建新变换并将其添加到渲染器的TransformTree
   addTransform(
     parentFrameId: string,
     childFrameId: string,

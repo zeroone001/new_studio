@@ -75,7 +75,9 @@ export function StudioApp(): JSX.Element {
 
   return (
     <MaybeLaunchPreference>
+      {/* 把各种providers 都集合起来 */}
       <MultiProvider providers={providers}>
+        {/* window.document.title */}
         <DocumentTitleAdapter />
         <SendNotificationToastAdapter />
         <DndProvider backend={HTML5Backend}>

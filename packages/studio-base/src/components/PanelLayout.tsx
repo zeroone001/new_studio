@@ -44,6 +44,7 @@ import { PanelRemounter } from "./PanelRemounter";
 import { UnknownPanel } from "./UnknownPanel";
 
 import "react-mosaic-component/react-mosaic-component.css";
+// import { log } from "mathjs";
 
 type Props = {
   layout?: MosaicNode<string>;
@@ -113,7 +114,12 @@ export function UnconnectedPanelLayout(props: Props): React.ReactElement {
   );
 
   const panelCatalog = usePanelCatalog();
-
+  /*
+    new Map([
+      ['key', 'value'],
+      ['title', 'Author']
+    ]);
+  */
   const panelComponents = useMemo(
     () =>
       new Map(
@@ -121,21 +127,24 @@ export function UnconnectedPanelLayout(props: Props): React.ReactElement {
       ),
     [panelCatalog],
   );
-
+  // 后续内容的关键
   const renderTile = useCallback(
     (id: string | Record<string, never> | undefined, path: MosaicPath) => {
-      // `id` is usually a string. But when `layout` is empty, `id` will be an empty object, in which case we don't need to render Tile
+      // `id通常是一个字符串。但当layout为空时，id将是一个空对象，在这种情况下，我们不需要渲染Tile
       if (id == undefined || typeof id !== "string") {
         return <></>;
       }
       const type = getPanelTypeFromId(id);
 
       let panel: JSX.Element;
+      // type === 3D
+      console.log("renderTile--->", panelComponents);
       const PanelComponent = panelComponents.get(type);
       if (PanelComponent) {
+        console.log("渲染 panel", id, type, PanelComponent);
         panel = <PanelComponent childId={id} tabId={tabId} />;
       } else {
-        // If we haven't found a panel of the given type, render the panel selector
+        // 如果我们没有找到给定类型的面板，请渲染面板选择器
         panel = <UnknownPanel childId={id} tabId={tabId} overrideConfig={{ type, id }} />;
       }
 
@@ -156,6 +165,7 @@ export function UnconnectedPanelLayout(props: Props): React.ReactElement {
           >
             <MosaicPathContext.Provider value={path}>
               <PanelRemounter id={id} tabId={tabId}>
+                renderTile
                 {panel}
               </PanelRemounter>
             </MosaicPathContext.Provider>
@@ -170,24 +180,24 @@ export function UnconnectedPanelLayout(props: Props): React.ReactElement {
     [panelComponents, createTile, tabId],
   );
 
-  const bodyToRender = useMemo(
-    () =>
-      layout != undefined ? (
-        <MosaicWithoutDragDropContext
-          renderTile={renderTile}
-          className="mosaic-foxglove-theme" // prevent the default mosaic theme from being applied
-          resize={{ minimumPaneSizePercentage: 2 }}
-          value={layout}
-          onChange={(newLayout) => {
-            onChange(newLayout ?? undefined);
-          }}
-          mosaicId={mosaicId}
-        />
-      ) : (
-        <EmptyPanelLayout tabId={tabId} />
-      ),
-    [layout, mosaicId, onChange, renderTile, tabId],
-  );
+  const bodyToRender = useMemo(() => {
+    console.log("layout", layout);
+
+    return layout != undefined ? (
+      <MosaicWithoutDragDropContext
+        renderTile={renderTile}
+        className="mosaic-foxglove-theme" // 阻止应用默认的马赛克主题
+        resize={{ minimumPaneSizePercentage: 2 }}
+        value={layout}
+        onChange={(newLayout) => {
+          onChange(newLayout ?? undefined);
+        }}
+        mosaicId={mosaicId}
+      />
+    ) : (
+      <EmptyPanelLayout tabId={tabId} />
+    );
+  }, [layout, mosaicId, onChange, renderTile, tabId]);
 
   return <ErrorBoundary>{bodyToRender}</ErrorBoundary>;
 }
@@ -206,7 +216,7 @@ function ExtensionsLoadingState(): JSX.Element {
 const selectedLayoutExistsSelector = (state: LayoutState) =>
   state.selectedLayout?.data != undefined;
 const selectedLayoutMosaicSelector = (state: LayoutState) => state.selectedLayout?.data?.layout;
-
+// 主函数在这
 export default function PanelLayout(): JSX.Element {
   const { layoutEmptyState } = useAppContext();
   const { changePanelLayout } = useCurrentLayoutActions();
@@ -224,14 +234,18 @@ export default function PanelLayout(): JSX.Element {
   );
 
   if (registeredExtensions == undefined) {
+    console.log("----->registeredExtensions is undefined");
     return <ExtensionsLoadingState />;
   }
 
   if (layoutExists) {
+    // 一般走这个
+    console.log("----->layoutExists is true");
     return <UnconnectedPanelLayout layout={mosaicLayout} onChange={onChange} />;
   }
 
   if (layoutEmptyState) {
+    console.log("----->layoutEmptyState is true");
     return layoutEmptyState;
   }
 

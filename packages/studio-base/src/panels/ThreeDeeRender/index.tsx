@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import { StrictMode, useMemo } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { DeepPartial } from "ts-essentials";
 
 import { useCrash } from "@foxglove/hooks";
@@ -33,11 +33,14 @@ type InitPanelArgs = {
   testOptions: TestOptions;
   customSceneExtensions?: DeepPartial<SceneExtensionConfig>;
 };
-
+// 初始化panel的函数
 function initPanel(args: InitPanelArgs, context: BuiltinPanelExtensionContext) {
+  console.log("初始化panel的函数");
+
   const { crash, forwardedAnalytics, interfaceMode, testOptions, customSceneExtensions } = args;
-  // eslint-disable-next-line react/no-deprecated
-  ReactDOM.render(
+
+  const root = createRoot(context.panelElement);
+  root.render(
     <StrictMode>
       <CaptureErrorBoundary onError={crash}>
         <ForwardAnalyticsContextProvider forwardedAnalytics={forwardedAnalytics}>
@@ -50,11 +53,11 @@ function initPanel(args: InitPanelArgs, context: BuiltinPanelExtensionContext) {
         </ForwardAnalyticsContextProvider>
       </CaptureErrorBoundary>
     </StrictMode>,
-    context.panelElement,
   );
   return () => {
-    // eslint-disable-next-line react/no-deprecated
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    setTimeout(() => {
+      root.unmount();
+    }, 0);
   };
 }
 
@@ -64,7 +67,7 @@ type Props = {
   onDownloadImage?: (blob: Blob, fileName: string) => void;
   debugPicking?: boolean;
 };
-
+// 3D渲染 适配器
 function ThreeDeeRenderAdapter(interfaceMode: InterfaceMode, props: Props) {
   const crash = useCrash();
 
@@ -110,7 +113,7 @@ function ThreeDeeRenderAdapter(interfaceMode: InterfaceMode, props: Props) {
 }
 
 /**
- * The Image panel is a special case of the 3D panel with `interfaceMode` set to `"image"`.
+ * 图像面板是“interfaceMode”设置为“Image”的3D面板的特例。
  */
 export const ImagePanel = Panel<Record<string, unknown>, Props>(
   Object.assign(ThreeDeeRenderAdapter.bind(undefined, "image"), {

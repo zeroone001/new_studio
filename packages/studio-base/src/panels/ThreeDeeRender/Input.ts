@@ -68,8 +68,7 @@ export class Input extends EventEmitter<InputEvents> {
     this.canvasSize = new THREE.Vector2();
     this.#onResize([]);
 
-    // Calling the resize observer too often causes Chrome to throw an exception
-    // so we debounce it.
+    // 频繁调用调整大小观测器会导致Chrome抛出异常 所以我们取消它。
     const debouncedOnResize = _.debounce(this.#onResize);
     this.#resizeObserver = new ResizeObserver(debouncedOnResize);
     this.#resizeObserver.observe(parentEl);
@@ -103,8 +102,8 @@ export class Input extends EventEmitter<InputEvents> {
   }
 
   /**
-   * Call this from mousedown to activate event tracking for a drag. mousemove events will be
-   * handled on the window and `onUpdate()` will be called until mouseup occurs.
+   * 从mousedown调用此命令以激活拖动的事件跟踪。mousemove事件将是
+   *在窗口上处理，并且将调用“onUpdate（）”，直到出现mouseup为止。
    */
   public trackDrag(onUpdate: (cursorCoords: THREE.Vector2) => void): void {
     const listener = (event: MouseEvent) => {
@@ -137,6 +136,8 @@ export class Input extends EventEmitter<InputEvents> {
   };
 
   #onMouseDown = (event: MouseEvent): void => {
+    console.log("----->#onMouseDown", event);
+
     this.#startClientPos = new THREE.Vector2(event.offsetX, event.offsetY);
     this.#updateCursorCoords(event);
     this.emit("mousedown", this.#cursorCoords, this.#worldSpaceCursorCoords, event);
@@ -148,6 +149,8 @@ export class Input extends EventEmitter<InputEvents> {
   };
 
   #onMouseUp = (event: MouseEvent): void => {
+    console.log("----->#onMouseUp", event);
+
     this.#updateCursorCoords(event);
     this.emit("mouseup", this.#cursorCoords, this.#worldSpaceCursorCoords, event);
   };
@@ -169,6 +172,8 @@ export class Input extends EventEmitter<InputEvents> {
   };
 
   #onWheel = (event: WheelEvent): void => {
+    console.log("----->#onWheel", event);
+
     this.#updateCursorCoords(event);
     this.emit("wheel", this.#cursorCoords, this.#worldSpaceCursorCoords, event);
   };

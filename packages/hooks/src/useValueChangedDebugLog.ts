@@ -13,7 +13,8 @@ const noOpImpl = () => {};
 function useValueChangedDebugLogImpl(value: unknown, msg: string): void {
   const prevValue = useRef<unknown>(value);
   if (prevValue.current !== value) {
-    log.debug(`value changed: ${msg}`);
+    // log.debug(`value changed: ${msg}`);
+    console.log(`value 改变了: ${msg}`);
   }
   useLayoutEffect(() => {
     prevValue.current = value;

@@ -96,7 +96,10 @@ const selectPlayerProblems = ({ playerState }: MessagePipelineContext) => player
 const selectIsPlaying = (ctx: MessagePipelineContext) =>
   ctx.playerState.activeData?.isPlaying === true;
 const selectPause = (ctx: MessagePipelineContext) => ctx.pausePlayback;
-const selectPlay = (ctx: MessagePipelineContext) => ctx.startPlayback;
+const selectPlay = (ctx: MessagePipelineContext) => {
+  // console.log("selectPlay");
+  return ctx.startPlayback;
+};
 const selectSeek = (ctx: MessagePipelineContext) => ctx.seekPlayback;
 const selectPlayUntil = (ctx: MessagePipelineContext) => ctx.playUntil;
 const selectPlayerId = (ctx: MessagePipelineContext) => ctx.playerState.playerId;
@@ -111,6 +114,7 @@ const selectWorkspaceRightSidebarItem = (store: WorkspaceContextStore) => store.
 const selectWorkspaceRightSidebarOpen = (store: WorkspaceContextStore) => store.sidebars.right.open;
 const selectWorkspaceRightSidebarSize = (store: WorkspaceContextStore) => store.sidebars.right.size;
 
+// 主函数
 function WorkspaceContent(props: WorkspaceProps): JSX.Element {
   const { PerformanceSidebarComponent } = useAppContext();
   const { classes } = useStyles();
@@ -131,7 +135,7 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
 
   const { dialogActions, sidebarActions } = useWorkspaceActions();
 
-  // file types we support for drag/drop
+  // 我们支持拖放的文件类型
   const allowedDropExtensions = useMemo(() => {
     const extensions = [".foxe"];
     for (const source of availableSources) {
@@ -142,8 +146,8 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
     return extensions;
   }, [availableSources]);
 
-  // We use playerId to detect when a player changes for RemountOnValueChange below
-  // see comment below above the RemountOnValueChange component
+  // 我们使用playerId来检测玩家何时更改以下RemountOnValueChange
+  //请参阅下面RemountOnValueChange组件上方的注释
   const playerId = useMessagePipeline(selectPlayerId);
 
   const { currentUserType } = useCurrentUser();
@@ -154,7 +158,7 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
 
   const { workspaceExtensions = [] } = useAppContext();
 
-  // When a player is activated, hide the open dialog.
+  // 当player被激活时，隐藏打开的对话框。
   useLayoutEffect(() => {
     if (
       playerPresence === PlayerPresence.PRESENT ||
@@ -165,7 +169,7 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
   }, [dialogActions.dataSource, playerPresence]);
 
   useEffect(() => {
-    // Focus on page load to enable keyboard interaction.
+    // 专注于页面加载以启用键盘交互
     if (containerRef.current) {
       containerRef.current.focus();
     }
@@ -451,6 +455,7 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
           {/* To ensure no stale player state remains, we unmount all panels when players change */}
           <RemountOnValueChange value={playerId}>
             <Stack>
+              {/* 这就是主体结构，那个panel了 */}
               <PanelLayout />
             </Stack>
           </RemountOnValueChange>
@@ -473,7 +478,7 @@ function WorkspaceContent(props: WorkspaceProps): JSX.Element {
       <WorkspaceDialogs />
     </PanelStateContextProvider>
   );
-}
+} // WorkspaceContent END
 
 export default function Workspace(props: WorkspaceProps): JSX.Element {
   const [showOpenDialogOnStartup = true] = useAppConfigurationValue<boolean>(

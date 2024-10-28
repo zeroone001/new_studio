@@ -57,7 +57,7 @@ export function useOpenFile(sources: readonly IDataSourceFactory[]): () => Promi
     if (!foundSource) {
       throw new Error(`Cannot find source to handle ${file.name}`);
     }
-
+    // 处理上传的文件
     selectSource(foundSource.id, { type: "file", handle: fileHandle });
   }, [allExtensions, selectSource, sources]);
 }

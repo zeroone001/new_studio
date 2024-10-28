@@ -16,7 +16,7 @@ import { PropsWithChildren, useCallback, useContext, useEffect, useMemo, useStat
 import { useMountedState } from "react-use";
 
 import { useWarnImmediateReRender } from "@foxglove/hooks";
-import Logger from "@foxglove/log";
+// import Logger from "@foxglove/log";
 import { Immutable } from "@foxglove/studio";
 import { MessagePipelineProvider } from "@foxglove/studio-base/components/MessagePipeline";
 import { useAnalytics } from "@foxglove/studio-base/context/AnalyticsContext";
@@ -35,13 +35,13 @@ import {
 } from "@foxglove/studio-base/players/TopicAliasingPlayer/TopicAliasingPlayer";
 import { Player } from "@foxglove/studio-base/players/types";
 
-const log = Logger.getLogger(__filename);
-
 type PlayerManagerProps = {
   playerSources: readonly IDataSourceFactory[];
 };
 
 export default function PlayerManager(props: PropsWithChildren<PlayerManagerProps>): JSX.Element {
+  console.log("PlayerManager--->");
+
   const { children, playerSources } = props;
 
   useWarnImmediateReRender();
@@ -52,7 +52,7 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
 
   const analytics = useAnalytics();
   const metricsCollector = useMemo(() => new AnalyticsMetricsCollector(analytics), [analytics]);
-
+  // basePlayer 其实是来自Ros2LocalBagDataSourceFactory的里面的  IterablePlayer .ts
   const [basePlayer, setBasePlayer] = useState<Player | undefined>();
 
   const { recents, addRecent } = useIndexedDbRecents();
@@ -61,18 +61,18 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
     if (!basePlayer) {
       return undefined;
     }
-
+    // 在这里初始化的,basePlayer 就是IterablePlayer
     return new TopicAliasingPlayer(basePlayer);
   }, [basePlayer]);
 
-  // Update the alias functions when they change. We do not need to re-render the player manager
-  // since nothing in the local state has changed.
+  // 当别名函数发生更改时更新它们。我们不需要重新任命球员经理
+  //因为当地的一切都没有改变。
   const extensionCatalogContext = useContext(ExtensionCatalogContext);
   useEffect(() => {
-    // Stable empty alias functions if we don't have any
+    // 如果我们没有稳定的空别名函数
     const emptyAliasFunctions: Immutable<TopicAliasFunctions> = [];
 
-    // We only want to set alias functions on the player when the functions have changed
+    // 我们只想在函数发生变化时在播放器上设置别名函数
     let topicAliasFunctions =
       extensionCatalogContext.getState().installedTopicAliasFunctions ?? emptyAliasFunctions;
     topicAliasPlayer?.setAliasFunctions(topicAliasFunctions);
@@ -96,10 +96,10 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
   const { enqueueSnackbar } = useSnackbar();
 
   const [selectedSource, setSelectedSource] = useState<IDataSourceFactory | undefined>();
-
+  // 上传ros2文件的时候触发这个函数
   const selectSource = useCallback(
     async (sourceId: string, args?: DataSourceArgs) => {
-      log.debug(`Select Source: ${sourceId}`);
+      console.log("Select Source:", sourceId, args);
 
       const foundSource = playerSources.find(
         (source) => source.id === sourceId || source.legacyIds?.includes(sourceId),
@@ -113,7 +113,7 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
 
       setSelectedSource(foundSource);
 
-      // Sample sources don't need args or prompts to initialize
+      // 示例源不需要参数或提示进行初始化
       if (foundSource.type === "sample") {
         const newPlayer = foundSource.initialize({
           metricsCollector,
@@ -132,6 +132,8 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
       try {
         switch (args.type) {
           case "connection": {
+            console.log("connection--1");
+
             const newPlayer = foundSource.initialize({
               metricsCollector,
               params: args.params,
@@ -151,13 +153,17 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
             return;
           }
           case "file": {
+            console.log("file--1");
+
             const handle = args.handle;
             const files = args.files;
 
-            // files we can try loading immediately
-            // We do not add these to recents entries because putting File in indexedb results in
-            // the entire file being stored in the database.
+            // 我们可以立即尝试加载的文件
+            // 我们不将这些添加到最近项中，因为将File放入indexedb会导致
+            // 整个文件被存储在数据库中。
             if (files) {
+              console.log("file--2");
+
               let file = files[0];
               const fileList: File[] = [];
 
@@ -176,6 +182,9 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
               setBasePlayer(newPlayer);
               return;
             } else if (handle) {
+              console.log("file--3");
+
+              // 在下面处理
               const permission = await handle.queryPermission({ mode: "read" });
               if (!isMounted()) {
                 return;
@@ -192,13 +201,15 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
               if (!isMounted()) {
                 return;
               }
-
+              // 这个地方很重要 Ros2LocalBagDataSourceFactory 这个文件有关
+              // 初始化
               const newPlayer = foundSource.initialize({
                 file,
                 metricsCollector,
               });
-
+              // 这就是设置播放器
               setBasePlayer(newPlayer);
+              // 添加 保存
               addRecent({
                 type: "file",
                 title: handle.name,
@@ -219,15 +230,16 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
     [playerSources, metricsCollector, enqueueSnackbar, isMounted, addRecent],
   );
 
-  // Select a recent entry by id
-  // necessary to pull out callback creation to avoid capturing the initial player in closure context
+  // 按id选择最近的条目
+  // 必须退出回调创建，以避免在闭包上下文中捕获初始播放器
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectRecent = useCallback(
+    // 这里是这个函数的return
     createSelectRecentCallback(recents, selectSource, enqueueSnackbar),
     [recents, enqueueSnackbar, selectSource],
   );
 
-  // Make a RecentSources array for the PlayerSelectionContext
+  // 为PlayerSelectionContext制作RecentSources数组
   const recentSources = useMemo(() => {
     return recents.map((item) => {
       return { id: item.id, title: item.title, label: item.label };
@@ -252,21 +264,26 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
 }
 
 /**
- * This was moved out of the PlayerManager function due to a memory leak occurring in memoized state of Start.tsx
- * that was retaining old player instances. Having this callback be defined within the PlayerManager makes it store the
- * player at instantiation within the closure context. That callback is then stored in the memoized state with its closure context.
- * The callback is updated when the player changes but part of the `Start.tsx` holds onto the formerly memoized state for an
- * unknown reason.
- * To make this function safe from storing old closure contexts in old memoized state in components where it
- * is used, it has been moved out of the PlayerManager function.
+ * 由于在Start.tsx的已存储状态下发生内存泄漏，这已从PlayerManager函数中移出
+ *那就是保留老玩家的实例。在PlayerManager中定义此回调使其存储
+ *在闭包上下文中实例化的播放器。然后，该回调与它的闭包上下文一起存储在记忆状态中。
+ *当播放器发生变化，但“Start.tsx”的一部分保留了以前的记忆状态时，回调会更新
+ *未知原因。
+ *为了使该函数安全地避免在组件中以旧的记忆状态存储旧的闭包上下文
+ *已被移出PlayerManager功能。
  */
 function createSelectRecentCallback(
   recents: RecentRecord[],
   selectSource: (sourceId: string, dataSourceArgs: DataSourceArgs) => Promise<void>,
   enqueueSnackbar: ReturnType<typeof useSnackbar>["enqueueSnackbar"],
 ) {
+  console.log("createSelectRecentCallback", recents);
+
   return (recentId: string) => {
-    // find the recent from the list and initialize
+    // selectRecent 传过来的recentId
+    // 先执行的这个
+    console.log("createSelectRecentCallback2", recentId);
+    // 从列表中查找最近的并初始化
     const foundRecent = recents.find((value) => value.id === recentId);
     if (!foundRecent) {
       enqueueSnackbar(`Failed to restore recent: ${recentId}`, { variant: "error" });

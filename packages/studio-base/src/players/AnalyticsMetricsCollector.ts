@@ -36,6 +36,7 @@ export default class AnalyticsMetricsCollector implements PlayerMetricsCollector
   }
 
   public play(speed: number): void {
+    console.log("AnalyticsMetricsCollector---play");
     this.logEvent(AppEvent.PLAYER_PLAY, { speed });
   }
 

@@ -10,7 +10,7 @@ export enum DetailLevel {
   High,
 }
 
-/** Returns the number of samples used for Multi-Sample Anti-Aliasing (MSAA) */
+/** 返回用于多采样消除混叠（MSAA）的采样数 */
 export function msaaSamples(capabilities: WebGLCapabilities): number {
   // NOTE: Type definition workaround
   return (capabilities as { maxSamples?: number }).maxSamples ?? 0;

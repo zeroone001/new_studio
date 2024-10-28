@@ -91,6 +91,8 @@ class BufferedIterableSource extends EventEmitter<EventTypes> implements IIterab
   }
 
   public async initialize(): Promise<Initalization> {
+    console.log("BufferedIterableSource--initialize");
+
     this.#initResult = await this.#source.initialize();
     return this.#initResult;
   }

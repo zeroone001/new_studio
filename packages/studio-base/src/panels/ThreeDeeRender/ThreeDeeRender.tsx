@@ -65,7 +65,7 @@ type Shared3DPanelState = {
   followMode: FollowMode;
   followTf: undefined | string;
 };
-
+// 样式
 const PANEL_STYLE: React.CSSProperties = {
   width: "100%",
   height: "100%",
@@ -74,15 +74,17 @@ const PANEL_STYLE: React.CSSProperties = {
 };
 
 /**
- * A panel that renders a 3D scene. This is a thin wrapper around a `Renderer` instance.
+ * 渲染三维场景的面板。这是一个围绕“Renderer”实例的薄包装。
  */
 export function ThreeDeeRender(props: {
   context: BuiltinPanelExtensionContext;
   interfaceMode: InterfaceMode;
   testOptions: TestOptions;
-  /** Allow for injection or overriding of default extensions by custom extensions */
+  /** 允许通过自定义扩展插入或覆盖默认扩展 */
   customSceneExtensions?: DeepPartial<SceneExtensionConfig>;
 }): JSX.Element {
+  console.log("ThreeDeeRender function");
+
   const { context, interfaceMode, testOptions, customSceneExtensions } = props;
   const {
     initialState,
@@ -90,13 +92,19 @@ export function ThreeDeeRender(props: {
     unstable_fetchAsset: fetchAsset,
     unstable_setMessagePathDropConfig: setMessagePathDropConfig,
   } = context;
+  // 分析
   const analytics = useAnalytics();
 
-  // Load and save the persisted panel configuration
+  // 加载并保存持久化的面板配置
+  // useState 的惰性初始化
+  // 可以传递一个函数作为 useState 的参数，
+  // 这个函数会在组件的首次渲染时被调用，而不是在每次渲染时都被调用
+  // 这种特性在处理大量数据或昂贵的计算时特别有用，
+  // 因为它可以避免不必要的重复操作，从而提高应用的性能。
   const [config, setConfig] = useState<Immutable<RendererConfig>>(() => {
     const partialConfig = initialState as DeepPartial<RendererConfig> | undefined;
 
-    // Initialize the camera from default settings overlaid with persisted settings
+    // 从覆盖有持久设置的默认设置初始化相机
     const cameraState: CameraState = _.merge(
       _.cloneDeep(DEFAULT_CAMERA_STATE),
       partialConfig?.cameraState,
@@ -117,17 +125,19 @@ export function ThreeDeeRender(props: {
       topics: partialConfig?.topics ?? {},
       layers: partialConfig?.layers ?? {},
       publish,
-      // deep partial on config, makes gradient tuple type [string | undefined, string | undefined]
-      // which is incompatible with `Partial<ColorModeSettings>`
+      // config上的deep-partial，使梯度元组类型[string|undefined，string|undefin]
+      // 与`Partial＜ColorModeSettings>不兼容`
       imageMode: (partialConfig?.imageMode ?? {}) as Partial<ImageModeConfig>,
     };
   });
   const configRef = useLatest(config);
   const { cameraState } = config;
   const backgroundColor = config.scene.backgroundColor;
-
+  // 在ref中使用，相当于 setCanvas(this); ref={setCanvas}
+  // 需要触发视图的不断地渲染
   const [canvas, setCanvas] = useState<HTMLCanvasElement | ReactNull>(ReactNull);
   const [renderer, setRenderer] = useState<IRenderer | undefined>(undefined);
+  // 作为一个变量，用于销毁
   const rendererRef = useRef<IRenderer | undefined>(undefined);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -138,8 +148,10 @@ export function ThreeDeeRender(props: {
     },
     [enqueueSnackbar],
   );
-
+  // 在这里整的threejs
   useEffect(() => {
+    console.log("ThreeDeeRender-useEffect--->", canvas, configRef, interfaceMode);
+
     const newRenderer = canvas
       ? new Renderer({
           canvas,
@@ -188,7 +200,7 @@ export function ThreeDeeRender(props: {
         : undefined,
     );
   }, [setMessagePathDropConfig, renderer]);
-
+  // 下面是一系列useState
   const [colorScheme, setColorScheme] = useState<"dark" | "light" | undefined>();
   const [timezone, setTimezone] = useState<string | undefined>();
   const [topics, setTopics] = useState<ReadonlyArray<Topic> | undefined>();
@@ -202,9 +214,9 @@ export function ThreeDeeRender(props: {
   const [didSeek, setDidSeek] = useState<boolean>(false);
   const [sharedPanelState, setSharedPanelState] = useState<undefined | Shared3DPanelState>();
   const [allFrames, setAllFrames] = useState<readonly MessageEvent[] | undefined>(undefined);
-
-  const renderRef = useRef({ needsRender: false });
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+  // 放个全局变量
+  const renderRef = useRef({ needsRender: false });
 
   const schemaSubscriptions = useRendererProperty(
     "schemaSubscriptions",
@@ -219,7 +231,7 @@ export function ThreeDeeRender(props: {
     renderer,
   );
 
-  // Config cameraState
+  // 配置相机状态
   useEffect(() => {
     const listener = () => {
       if (renderer) {
@@ -227,8 +239,7 @@ export function ThreeDeeRender(props: {
         if (!newCameraState) {
           return;
         }
-        // This needs to be before `setConfig` otherwise flickering will occur during
-        // non-follow mode playback
+        // 这需要在“setConfig”之前，否则在低模式播放期间会出现闪烁
         renderer.setCameraState(newCameraState);
         setConfig((prevConfig) => ({ ...prevConfig, cameraState: newCameraState }));
 
@@ -245,13 +256,13 @@ export function ThreeDeeRender(props: {
     return () => void renderer?.removeListener("cameraMove", listener);
   }, [config.scene.syncCamera, config.followMode, context, renderer?.followFrameId, renderer]);
 
-  // Handle user changes in the settings sidebar
+  // 在设置侧边栏中处理用户更改
   const actionHandler = useCallback(
     (action: SettingsTreeAction) => {
-      // Wrapping in unstable_batchedUpdates causes React to run effects _after_ the handleAction
-      // function has finished executing. This allows scene extensions that call
-      // renderer.updateConfig to read out the new config value and configure their renderables
-      // before the render occurs.
+      // 包装在不稳定的_batchedUpdates中会导致React在handleAction中运行effect_after_
+      //函数已完成执行。这允许场景扩展调用
+      //renderer.updateConfig读取新的配置值并配置其可渲染文件
+      //在渲染发生之前
       ReactDOM.unstable_batchedUpdates(() => {
         if (renderer) {
           const initialCameraState = renderer.getCameraState();
@@ -271,20 +282,20 @@ export function ThreeDeeRender(props: {
     [config.followMode, config.scene.syncCamera, context, renderer],
   );
 
-  // Maintain the settings tree
+  // 维护设置树
   const [settingsTree, setSettingsTree] = useState<SettingsTreeNodes | undefined>(undefined);
   const updateSettingsTree = useCallback((curRenderer: IRenderer) => {
     setSettingsTree(curRenderer.settings.tree());
   }, []);
   useRendererEvent("settingsTreeChange", updateSettingsTree, renderer);
 
-  // Save the panel configuration when it changes
+  // 更改面板配置时保存该配置
   const updateConfig = useCallback((curRenderer: IRenderer) => {
     setConfig(curRenderer.config);
   }, []);
   useRendererEvent("configChange", updateConfig, renderer);
 
-  // Write to a global variable when the current selection changes
+  // 当前选择更改时写入全局变量
   const updateSelectedRenderable = useCallback(
     (selection: PickedRenderable | undefined) => {
       const id = selection?.renderable.idFromMessage();
@@ -304,7 +315,7 @@ export function ThreeDeeRender(props: {
     setFocusedSettingsPath(["topics", topic]);
   }, []);
 
-  // Rebuild the settings sidebar tree as needed
+  // 根据需要重建设置侧边栏树
   useEffect(() => {
     context.updatePanelSettingsEditor({
       actionHandler,
@@ -314,8 +325,7 @@ export function ThreeDeeRender(props: {
     });
   }, [actionHandler, context, focusedSettingsPath, settingsTree]);
 
-  // Update the renderer's reference to `config` when it changes. Note that this does *not*
-  // automatically update the settings tree.
+  // 当“配置”更改时，更新渲染器对“配置”的引用。请注意，这并不** 自动更新设置树
   useEffect(() => {
     if (renderer) {
       renderer.config = config;
@@ -323,7 +333,7 @@ export function ThreeDeeRender(props: {
     }
   }, [config, renderer]);
 
-  // Update the renderer's reference to `topics` when it changes
+  // 更改时更新渲染器对“topics”的引用
   useEffect(() => {
     if (renderer) {
       renderer.setTopics(topics);
@@ -331,14 +341,14 @@ export function ThreeDeeRender(props: {
     }
   }, [topics, renderer]);
 
-  // Tell the renderer if we are connected to a ROS data source
+  // 告诉渲染器我们是否连接到ROS数据源
   useEffect(() => {
     if (renderer) {
       renderer.ros = context.dataSourceProfile === "ros1" || context.dataSourceProfile === "ros2";
     }
   }, [context.dataSourceProfile, renderer]);
 
-  // Save panel settings whenever they change
+  // 更改面板设置时保存这些设置
   const throttledSave = useDebouncedCallback(
     (newConfig: Immutable<RendererConfig>) => {
       saveState(newConfig);
@@ -348,14 +358,14 @@ export function ThreeDeeRender(props: {
   );
   useEffect(() => throttledSave(config), [config, throttledSave]);
 
-  // Keep default panel title up to date with selected image topic in image mode
+  // 在图像模式下，使默认面板标题与所选图像主题保持最新
   useEffect(() => {
     if (interfaceMode === "image") {
       context.setDefaultPanelTitle(config.imageMode.imageTopic);
     }
   }, [interfaceMode, context, config.imageMode.imageTopic]);
 
-  // Establish a connection to the message pipeline with context.watch and context.onRender
+  // 使用context.watch和context.onRender建立到消息管道的连接
   useLayoutEffect(() => {
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       ReactDOM.unstable_batchedUpdates(() => {
@@ -363,8 +373,8 @@ export function ThreeDeeRender(props: {
           setCurrentTime(renderState.currentTime);
         }
 
-        // Check if didSeek is set to true to reset the preloadedMessageTime and
-        // trigger a state flush in Renderer
+        // 检查didSeek是否设置为true以重置预加载的MessageTime和
+        //在渲染器中触发状态刷新
         if (renderState.didSeek === true) {
           setDidSeek(true);
         }
@@ -391,7 +401,8 @@ export function ThreeDeeRender(props: {
         // currentFrame has messages on subscribed topics since the last render call
         setCurrentFrameMessages(renderState.currentFrame);
 
-        // allFrames has messages on preloaded topics across all frames (as they are loaded)
+        // allFrames在所有框架中都有关于预加载主题的消息（加载时）
+        console.log("allFrames", renderState.allFrames);
         setAllFrames(renderState.allFrames);
       });
     };
@@ -408,7 +419,7 @@ export function ThreeDeeRender(props: {
     context.subscribeAppSettings([AppSetting.TIMEZONE]);
   }, [context, renderer]);
 
-  // Build a list of topics to subscribe to
+  // 建立要订阅的主题列表
   const [topicsToSubscribe, setTopicsToSubscribe] = useState<Subscription[] | undefined>(undefined);
   useEffect(() => {
     if (!topics) {
@@ -456,7 +467,7 @@ export function ThreeDeeRender(props: {
       }
     }
 
-    // Sort the list to make comparisons stable
+    // 对列表进行排序以使比较稳定
     newSubscriptions.sort((a, b) => a.topic.localeCompare(b.topic));
     setTopicsToSubscribe((prev) => (_.isEqual(prev, newSubscriptions) ? prev : newSubscriptions));
   }, [
@@ -474,7 +485,7 @@ export function ThreeDeeRender(props: {
     config.layers,
   ]);
 
-  // Notify the extension context when our subscription list changes
+  // 当我们的订阅列表更改时通知扩展上下文
   useEffect(() => {
     if (!topicsToSubscribe) {
       return;
@@ -483,24 +494,24 @@ export function ThreeDeeRender(props: {
     context.subscribe(topicsToSubscribe);
   }, [context, topicsToSubscribe]);
 
-  // Keep the renderer parameters up to date
+  // 使渲染器参数保持最新
   useEffect(() => {
     if (renderer) {
       renderer.setParameters(parameters);
     }
   }, [parameters, renderer]);
 
-  // Keep the renderer currentTime up to date and handle seeking
+  // 保持渲染器的最新时间并处理搜索
   useEffect(() => {
     const newTimeNs = currentTime ? toNanoSec(currentTime) : undefined;
 
     /*
-     * NOTE AROUND SEEK HANDLING
-     * Seeking MUST be handled even if there is no change in current time.  When there is a subscription
-     * change while paused, the player goes into `seek-backfill` which sets didSeek to true.
+     * 关于查找处理的注意事项
+     *即使当前时间没有变化，也必须处理查找。当有订阅时
+     *暂停时更改，玩家进入“寻找回填”，将didSeek设置为true。
      *
-     * We cannot early return here when there is no change in current time due to that, otherwise it would
-     * handle seek next time the current time changes and clear the backfilled messages and transforms.
+     *当当前时间没有因此而改变时，我们不能提前返回这里，否则会
+     *下次当前时间更改时处理seek，并清除回填的消息和转换。
      */
     if (!renderer || newTimeNs == undefined) {
       return;
@@ -514,7 +525,7 @@ export function ThreeDeeRender(props: {
     }
   }, [currentTime, renderer, didSeek]);
 
-  // Keep the renderer colorScheme and backgroundColor up to date
+  // 保持渲染器的配色方案和背景颜色是最新的
   useEffect(() => {
     if (colorScheme && renderer) {
       renderer.setColorScheme(colorScheme, backgroundColor);
@@ -522,10 +533,10 @@ export function ThreeDeeRender(props: {
     }
   }, [backgroundColor, colorScheme, renderer]);
 
-  // Handle preloaded messages and render a frame if new messages are available
-  // Should be called before `messages` is handled
+  // 处理预加载的消息，如果有新消息可用，则渲染帧
+  // 应在处理“消息”之前调用
   useEffect(() => {
-    // we want didseek to be handled by the renderer first so that transforms aren't cleared after the cursor has been brought up
+    // 我们希望didsseek首先由渲染器处理，这样在光标出现后就不会清除转换
     if (!renderer || !currentTime) {
       return;
     }
@@ -535,7 +546,7 @@ export function ThreeDeeRender(props: {
     }
   }, [renderer, currentTime, allFrames]);
 
-  // Handle messages and render a frame if new messages are available
+  // 如果有新消息可用，则处理消息并渲染帧
   useEffect(() => {
     if (!renderer || !currentFrameMessages) {
       return;
@@ -548,7 +559,7 @@ export function ThreeDeeRender(props: {
     renderRef.current.needsRender = true;
   }, [currentFrameMessages, renderer]);
 
-  // Update the renderer when the camera moves
+  // 摄影机移动时更新渲染器
   useEffect(() => {
     if (!_.isEqual(cameraState, renderer?.getCameraState())) {
       renderer?.setCameraState(cameraState);
@@ -556,7 +567,7 @@ export function ThreeDeeRender(props: {
     }
   }, [cameraState, renderer]);
 
-  // Sync camera with shared state, if enabled.
+  // 将相机与共享状态同步（如果启用）。
   useEffect(() => {
     if (!renderer || sharedPanelState == undefined || config.scene.syncCamera !== true) {
       return;
@@ -588,7 +599,7 @@ export function ThreeDeeRender(props: {
     sharedPanelState,
   ]);
 
-  // Render a new frame if requested
+  // 如果请求，渲染新帧
   useEffect(() => {
     if (renderer && renderRef.current.needsRender) {
       renderer.animationFrame();
@@ -596,13 +607,13 @@ export function ThreeDeeRender(props: {
     }
   });
 
-  // Invoke the done callback once the render is complete
+  // 渲染完成后调用done回调
   useEffect(() => {
     renderDone?.();
   }, [renderDone]);
 
-  // Create a useCallback wrapper for adding a new panel to the layout, used to open the
-  // "Raw Messages" panel from the object inspector
+  // 创建一个useCallback包装，用于将新面板添加到布局中，用于打开
+  //对象检查器的“原始消息”面板
   const addPanel = useCallback(
     (params: Parameters<LayoutActions["addPanel"]>[0]) => {
       context.layout.addPanel(params);
@@ -768,7 +779,7 @@ export function ThreeDeeRender(props: {
     [onTogglePerspective],
   );
 
-  // The 3d panel only supports publishing to ros1 and ros2 data sources
+  // 3d面板仅支持发布到ros1和ros2数据源
   const isRosDataSource =
     context.dataSourceProfile === "ros1" || context.dataSourceProfile === "ros2";
   const canPublish = context.publish != undefined && isRosDataSource;
@@ -776,7 +787,9 @@ export function ThreeDeeRender(props: {
   return (
     <ThemeProvider isDark={colorScheme === "dark"}>
       <div style={PANEL_STYLE} onKeyDown={onKeyDown}>
+        {/* 真正的3D内容所在地 */}
         <canvas
+          className="true3Dcontainer"
           ref={setCanvas}
           style={{
             position: "absolute",
@@ -785,6 +798,9 @@ export function ThreeDeeRender(props: {
             ...((measureActive || publishActive) && { cursor: "crosshair" }),
           }}
         />
+        {/*  在3D场景的顶部提供DOM覆盖元素（例如统计数据、调试GUI）
+          这是右上角的按钮配置之类的
+        */}
         <RendererContext.Provider value={renderer}>
           <RendererOverlay
             interfaceMode={interfaceMode}

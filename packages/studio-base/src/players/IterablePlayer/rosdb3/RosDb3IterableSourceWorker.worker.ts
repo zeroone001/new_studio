@@ -15,6 +15,7 @@ export function initialize(args: IterableSourceInitializeArgs): WorkerIterableSo
     throw new Error("files required");
   }
   const source = new RosDb3IterableSource(files);
+  // 没感觉这个class有啥用，就是主要调用 source.initialize()方法
   const wrapped = new WorkerIterableSourceWorker(source);
   return Comlink.proxy(wrapped);
 }

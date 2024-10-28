@@ -187,7 +187,7 @@ export function AppBar(props: AppBarProps): JSX.Element {
   const appMenuOpen = Boolean(appMenuEl);
   const userMenuOpen = Boolean(userAnchorEl);
   const panelMenuOpen = Boolean(panelAnchorEl);
-
+  // 最顶部黑色APP Bar
   return (
     <>
       <AppBarContainer onDoubleClick={onDoubleClick} leftInset={leftInset}>

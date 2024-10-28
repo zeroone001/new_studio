@@ -8,10 +8,10 @@ import PanelToolbar from "@foxglove/studio-base/components/PanelToolbar";
 import Stack from "@foxglove/studio-base/components/Stack";
 import { SaveConfig } from "@foxglove/studio-base/types/panels";
 
-// Since the unknown panel never saves its config, the config fields here are used with `overrideConfig`
-// to the connected Panel component (returned from withPanel).
+// 由于未知面板从不保存其配置，因此此处的配置字段与`overrideConfig一起使用`
+// 连接到已连接的Panel组件（从withPanel返回）。
 //
-// The _type_ config option should be the type of the missing panel.
+// type _ config选项应该是缺少的面板的类型。
 type Props = {
   config: { type: string; id: string };
   saveConfig: SaveConfig<unknown>;
@@ -31,7 +31,6 @@ UnconnectedUnknownPanel.panelType = "unknown";
 UnconnectedUnknownPanel.defaultConfig = {};
 
 /**
- * An UnknownPanel stands in for missing panels. When a panel referenced in a layout is not
- * available (maybe the extension was un-installed), this panel is shown instead.
+ * 未知面板代表缺失的面板。当布局中引用的面板不是可用（可能扩展未安装），显示此面板
  */
 export const UnknownPanel = withPanel(UnconnectedUnknownPanel);

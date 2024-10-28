@@ -103,11 +103,11 @@ type IterablePlayerState =
   | "reset-playback-iterator";
 
 /**
- * IterablePlayer implements the Player interface for IIterableSource instances.
+ * IterablePlayer实现了IIterableSource实例的Player接口。
  *
- * The iterable player reads messages from an IIterableSource. The player is implemented as a state
- * machine. Each state runs until it finishes. A request to change state is handled by each state
- * detecting that there is another state waiting and cooperatively ending itself.
+ * 可迭代播放器从IIterableSource读取消息。播放器被实现为一个状态
+ * 机器每个状态一直运行到结束。更改状态的请求由每个状态处理
+ * 检测到有另一个状态在等待并且协作地结束其自身。
  */
 export class IterablePlayer implements Player {
   #urlParams?: Record<string, string>;
@@ -164,7 +164,7 @@ export class IterablePlayer implements Player {
   // Some states register an abort controller to signal they should abort
   #abort?: AbortController;
 
-  // The iterator for reading messages during playback
+  // 用于在播放期间读取消息的迭代器
   #playbackIterator?: AsyncIterator<Readonly<IteratorResult>>;
 
   #blockLoader?: BlockLoader;
@@ -182,8 +182,9 @@ export class IterablePlayer implements Player {
 
   public constructor(options: IterablePlayerOptions) {
     const { metricsCollector, urlParams, source, name, enablePreload, sourceId } = options;
-
+    // 这个source才是核心
     this.#iterableSource = source;
+    // 把Source的能力传到了这里
     this.#bufferedSource = new BufferedIterableSource(source);
     this.#name = name;
     this.#urlParams = urlParams;
@@ -196,27 +197,30 @@ export class IterablePlayer implements Player {
       this.#resolveIsClosed = resolveClose;
     });
 
-    // Wrap emitStateImpl in a debouncePromise for our states to call. Since we can emit from states
-    // or from block loading updates we use debouncePromise to guard against concurrent emits.
+    // 包装emitStateImpl在一个debouncePromise中为我们的州调用。因为我们可以从国家排放
+    // 或者通过块加载更新，我们使用debouncePromise来防止并发发射。
     this.#queueEmitState = debouncePromise(this.#emitStateImpl.bind(this));
   }
-
+  // 设置监听
   public setListener(listener: (playerState: PlayerState) => Promise<void>): void {
+    console.log("setListener---->1");
+
     if (this.#listener) {
       throw new Error("Cannot setListener again");
     }
     this.#listener = listener;
     this.#setState("initialize");
   }
-
+  // 开始播放 ，这个函数面向外面使用
   public startPlayback(): void {
+    console.log("startPlayback---->2");
     this.#startPlayImpl();
   }
 
   public playUntil(time: Time): void {
     this.#startPlayImpl({ untilTime: time });
   }
-
+  // 开始播放
   #startPlayImpl(opt?: { untilTime: Time }): void {
     if (this.#isPlaying || this.#untilTime != undefined || !this.#start || !this.#end) {
       return;
@@ -228,19 +232,23 @@ export class IterablePlayer implements Player {
       }
       this.#untilTime = clampTime(opt.untilTime, this.#start, this.#end);
     }
+    //
+    console.log("startPlayImpl---->3");
     this.#metricsCollector.play(this.#speed);
     this.#isPlaying = true;
 
-    // If we are idling we can start playing, if we have a next state queued we let that state
-    // finish and it will see that we should be playing
+    // 如果我们空闲，我们可以开始玩，如果我们有下一个状态排队，我们让那个状态
+    // 完成比赛，我们就可以上场了
     if (this.#state === "idle" && (!this.#nextState || this.#nextState === "idle")) {
       this.#setState("play");
     } else {
-      this.#queueEmitState(); // update isPlaying state to UI
+      this.#queueEmitState(); // 将isPlaying状态更新为UI
     }
   }
-
+  // 暂停播放
   public pausePlayback(): void {
+    console.log("pausePlayback---->4");
+
     if (!this.#isPlaying) {
       return;
     }
@@ -256,17 +264,22 @@ export class IterablePlayer implements Player {
       this.#queueEmitState(); // update isPlaying state to UI
     }
   }
-
+  // 设置播放速度 这个函数是在外面用修改播放速度的
   public setPlaybackSpeed(speed: number): void {
+    console.log("setPlaybackSpeed---->5");
+
     this.#lastRangeMillis = undefined;
     this.#speed = speed;
     this.#metricsCollector.setSpeed(speed);
 
-    // Queue event state update to update speed in player state to UI
+    // 这个函数用来去触发修改UI的，在class里这个函数使用了最多的次数
+    // 在这个class里一切的事情都是为了去触发这个函数
     this.#queueEmitState();
   }
 
   public seekPlayback(time: Time): void {
+    console.log("seekPlayback---->6");
+
     // Wait to perform seek until initialization is complete
     if (this.#state === "preinit" || this.#state === "initialize") {
       log.debug(`Ignoring seek, state=${this.#state}`);
@@ -278,10 +291,10 @@ export class IterablePlayer implements Player {
       throw new Error("invariant: initialized but no start/end set");
     }
 
-    // Limit seek to within the valid range
+    // 将查找限制在有效范围内
     const targetTime = clampTime(time, this.#start, this.#end);
 
-    // We are already seeking to this time, no need to reset seeking
+    // 我们已经在寻求这个时候，没有必要重新设置寻求
     if (this.#seekTarget && compare(this.#seekTarget, targetTime) === 0) {
       log.debug(`Ignoring seek, already seeking to this time`);
       return;
@@ -303,6 +316,8 @@ export class IterablePlayer implements Player {
   }
 
   public setSubscriptions(newSubscriptions: SubscribePayload[]): void {
+    console.log("setSubscriptions---->7");
+
     log.debug("set subscriptions", newSubscriptions);
     this.#subscriptions = newSubscriptions;
     this.#metricsCollector.setSubscriptions(newSubscriptions);
@@ -325,9 +340,9 @@ export class IterablePlayer implements Player {
     this.#preloadTopics = preloadTopics;
     this.#blockLoader?.setTopics(this.#preloadTopics);
 
-    // If the player is playing, the playing state will detect any subscription changes and adjust
-    // iterators accordingly. However if we are idle or already seeking then we need to manually
-    // trigger the backfill.
+    // 如果播放器正在播放，播放状态将检测到任何订阅更改并进行调整
+    //迭代器。然而，如果我们空闲或已经在寻找，那么我们需要手动
+    //触发回填。
     if (
       this.#state === "idle" ||
       this.#state === "seek-backfill" ||
@@ -363,6 +378,8 @@ export class IterablePlayer implements Player {
   }
 
   public close(): void {
+    console.log("close---->8");
+
     this.#setState("close");
   }
 
@@ -370,25 +387,30 @@ export class IterablePlayer implements Player {
     // no-op
   }
 
-  /** Request the state to switch to newState */
+  /** 请求状态切换到newState */
   #setState(newState: IterablePlayerState) {
-    // nothing should override closing the player
+    // log.debug(`设置下个状态: ${newState}`);
+    console.log(`设置下个状态: ${newState}`);
+    // 任何东西都不应该超过关闭播放器
     if (this.#nextState === "close") {
       return;
     }
-    log.debug(`Set next state: ${newState}`);
+
     this.#nextState = newState;
+    // 中止
+    // 中止一个尚未完成的 Web（网络）请求。这能够中止 fetch 请求及任何响应体的消费和流。
     this.#abort?.abort();
     this.#abort = undefined;
     void this.#runState();
   }
 
   /**
-   * Run the requested state while there is a state to run.
-   *
-   * Ensures that only one state is running at a time.
+   * 在有状态要运行时运行请求的状态。
+   * 确保一次只运行一个状态。
    * */
   async #runState() {
+    console.log(`runState---->9`);
+
     if (this.#runningState) {
       return;
     }
@@ -401,8 +423,8 @@ export class IterablePlayer implements Player {
 
         log.debug(`Start state: ${state}`);
 
-        // If we are going into a state other than play or idle we throw away the playback iterator since
-        // we will need to make a new one.
+        // 如果我们进入播放或空闲以外的状态，我们将丢弃播放迭代器，因为
+        //我们需要做一个新的
         if (state !== "idle" && state !== "play" && this.#playbackIterator) {
           log.debug("Ending playback iterator because next state is not IDLE or PLAY");
           await this.#playbackIterator.return?.();
@@ -435,8 +457,9 @@ export class IterablePlayer implements Player {
           case "reset-playback-iterator":
             await this.#stateResetPlaybackIterator();
         }
+        console.log(`Done state ${state}`);
 
-        log.debug(`Done state ${state}`);
+        // log.debug();
       }
     } catch (err) {
       log.error(err);
@@ -457,9 +480,12 @@ export class IterablePlayer implements Player {
     this.#isPlaying = false;
   }
 
-  // Initialize the source and player members
+  // 初始化源和玩家成员
   async #stateInitialize(): Promise<void> {
-    // emit state indicating start of initialization
+    // 这个函数确实是先触发的，在上传本地文件的时候就触发了
+    console.log("初始化stateInitialize");
+
+    // 指示初始化开始的发射状态
     this.#queueEmitState();
 
     try {
@@ -475,8 +501,8 @@ export class IterablePlayer implements Player {
         name,
       } = await this.#bufferedSource.initialize();
 
-      // Prior to initialization, the seekTarget may have been set to an out-of-bounds value
-      // This brings the value in bounds
+      // 在初始化之前，seekTarget可能已设置为越界值
+      //这使值处于界限内
       if (this.#seekTarget) {
         this.#seekTarget = clampTime(this.#seekTarget, start, end);
       }
@@ -565,6 +591,8 @@ export class IterablePlayer implements Player {
   }
 
   async #resetPlaybackIterator() {
+    console.log("resetPlaybackIterator--->");
+
     if (!this.#currentTime) {
       throw new Error("Invariant: Tried to reset playback iterator with no current time.");
     }
@@ -586,6 +614,8 @@ export class IterablePlayer implements Player {
   }
 
   async #stateResetPlaybackIterator() {
+    console.log("resetPlaybackIterator--->");
+
     if (!this.#currentTime) {
       throw new Error("Invariant: Tried to reset playback iterator with no current time.");
     }
@@ -594,15 +624,18 @@ export class IterablePlayer implements Player {
     this.#setState(this.#isPlaying ? "play" : "idle");
   }
 
-  // Read a small amount of data from the data source with the hope of producing a message or two.
-  // Without an initial read, the user would be looking at a blank layout since no messages have yet
-  // been delivered.
+  // 从数据源中读取少量数据，希望能生成一两条消息。
+  //如果没有初始阅读，用户将看到一个空白布局，因为还没有消息
+  //已交付。
   async #stateStartPlay() {
+    // 这个函数在打开本地文件的时候就会执行到这里
+    console.log("啦啦啦Starting playback");
+
     if (!this.#start || !this.#end) {
       throw new Error("Invariant: start and end must be set");
     }
 
-    // If we have a target seek time, the seekPlayback function will take care of backfilling messages.
+    // 如果我们有目标寻道时间，seekPlayback功能将负责回填消息。
     if (this.#seekTarget) {
       this.#setState("seek-backfill");
       return;
@@ -621,6 +654,7 @@ export class IterablePlayer implements Player {
     }
 
     log.debug("Initializing forward iterator from", this.#start);
+    // 主要是这个
     this.#playbackIterator = this.#bufferedSource.messageIterator({
       topics: this.#allTopics,
       start: this.#start,
@@ -683,9 +717,11 @@ export class IterablePlayer implements Player {
     this.#setState("idle");
   }
 
-  // Process a seek request. The seek is performed by requesting a getBackfillMessages from the source.
+  // 处理查找请求。通过从源请求getBackfillMessages来执行查找。
   // This provides the last message on all subscribed topics.
   async #stateSeekBackfill() {
+    console.log("stateSeekBackfill--->");
+
     if (!this.#start || !this.#end) {
       throw new Error("invariant: stateSeekBackfill prior to initialization");
     }
@@ -749,8 +785,10 @@ export class IterablePlayer implements Player {
     }
   }
 
-  /** Emit the player state to the registered listener */
+  /** 向注册的侦听器发出播放器状态 */
   async #emitStateImpl() {
+    console.log("emitStateImpl--->#queueEmitState");
+
     if (!this.#listener) {
       return;
     }
@@ -764,10 +802,10 @@ export class IterablePlayer implements Player {
         profile: this.#profile,
         playerId: this.#id,
         activeData: undefined,
-        problems: this.#problemManager.problems(),
+        problems: this.#problemManager.problems(), // new PlayerProblemManager();
         urlState: {
-          sourceId: this.#sourceId,
-          parameters: this.#urlParams,
+          sourceId: this.#sourceId, // 来自外层的初始化，class里面没做处理
+          parameters: this.#urlParams, // 来自外层的初始化，class里面没做处理
         },
       });
       return;
@@ -796,29 +834,34 @@ export class IterablePlayer implements Player {
         publishedTopics: this.#publishedTopics,
       };
     }
-
+    // 下面数据关键一个是  progress ，一个是 activeData
     const data: PlayerState = {
       name: this.#name,
       presence: this.#presence,
-      progress: this.#progress,
-      capabilities: this.#capabilities,
-      profile: this.#profile,
-      playerId: this.#id,
-      problems: this.#problemManager.problems(),
-      activeData,
+      progress: this.#progress, // 进度指示 重要
+      capabilities: this.#capabilities, // string[] 放了个字符串数组固定的，暂时感觉不关键
+      profile: this.#profile, // 外部文件传过来的，对本class来说 不重要
+      playerId: this.#id, // uuid 生成的 不用管
+      problems: this.#problemManager.problems(), // new PlayerProblemManager();
+      activeData, // 放了一大堆的数据，比如时间，速度等等
       urlState: {
-        sourceId: this.#sourceId,
-        parameters: this.#urlParams,
+        sourceId: this.#sourceId, // 来自外层的初始化，class里面没做处理
+        parameters: this.#urlParams, // 来自外层的初始化，class里面没做处理
       },
     };
+    console.log("emitStateImpl----->listener");
 
     await this.#listener(data);
   }
 
   /**
-   * Run one tick loop by reading from the message iterator a "tick" worth of messages.
+   * 通过从消息迭代器读取“tick”值的消息来运行一个tick循环。
+   * 记号
+   * 这个是视频播放的 关键
    * */
   async #tick(): Promise<void> {
+    console.log("tick---->");
+
     if (!this.#isPlaying) {
       return;
     }
@@ -826,7 +869,7 @@ export class IterablePlayer implements Player {
       throw new Error("Invariant: start & end should be set before tick()");
     }
 
-    // compute how long of a time range we want to read by taking into account
+    // 考虑到我们想阅读的时间范围有多长
     // the time since our last read and how fast we're currently playing back
     const tickTime = performance.now();
     const durationMillis =
@@ -835,11 +878,13 @@ export class IterablePlayer implements Player {
         : 20;
     this.#lastTickMillis = tickTime;
 
-    // Read at most 300ms worth of messages, otherwise things can get out of control if rendering
+    // 最多读取300毫秒的消息，否则如果渲染，事情可能会失控
     // is very slow. Also, smooth over the range that we request, so that a single slow frame won't
     // cause the next frame to also be unnecessarily slow by increasing the frame size.
     let rangeMillis = Math.min(durationMillis * this.#speed, 300);
     if (this.#lastRangeMillis != undefined) {
+      console.log("lastRangeMillis", this.#lastRangeMillis);
+
       rangeMillis = this.#lastRangeMillis * 0.9 + rangeMillis * 0.1;
     }
     this.#lastRangeMillis = rangeMillis;
@@ -848,20 +893,23 @@ export class IterablePlayer implements Player {
       throw new Error("Invariant: Tried to play with no current time.");
     }
 
-    // The end time when we want to stop reading messages and emit state for the tick
+    // 我们想要停止阅读消息并发出勾号状态的结束时间
     // The end time is inclusive.
     const targetTime = add(this.#currentTime, fromMillis(rangeMillis));
     const end: Time = clampTime(targetTime, this.#start, this.#untilTime ?? this.#end);
 
-    // If a lastStamp is available from the previous tick we check the stamp against our current
-    // tick's end time. If this stamp is after our current tick's end time then we don't need to
-    // read any messages and can shortcut the rest of the logic to set the current time to the tick
-    // end time and queue an emit.
+    // 如果上一次勾选中有lastStamp可用，我们会将该戳与当前戳进行核对
+    //tick的结束时间。如果这个印记在我们当前刻度的结束时间之后，那么我们不需要
+    //阅读任何消息，并可以快捷方式设置逻辑的其余部分，以将当前时间设置为刻度
+    //结束时间并对发射进行排队。
     //
-    // If we have a lastStamp but it isn't after the tick end, then we clear it and proceed with the
-    // tick logic.
+    // 如果我们有lastStamp，但它不在刻度结束之后，那么我们将清除它并继续 勾选逻辑。
     if (this.#lastStamp) {
+      console.log("lastStamp");
+
       if (compare(this.#lastStamp, end) >= 0) {
+        console.log("lastStampcompare");
+
         // Wait for the previous render frame to finish
         await this.#queueEmitState.currentPromise;
 
@@ -870,6 +918,8 @@ export class IterablePlayer implements Player {
         this.#queueEmitState();
 
         if (this.#untilTime && compare(this.#currentTime, this.#untilTime) >= 0) {
+          console.log("untilTime");
+
           this.pausePlayback();
         }
         return;
@@ -880,11 +930,15 @@ export class IterablePlayer implements Player {
 
     const msgEvents: MessageEvent[] = [];
 
-    // When ending the previous tick, we might have already read a message from the iterator which
-    // belongs to our tick. This logic brings that message into our current batch of message events.
+    //在结束上一次勾选时，我们可能已经从迭代器中读取了一条消息
+    //属于我们的蜱虫。此逻辑将该消息带入我们当前的一批消息事件中。
     if (this.#lastMessageEvent) {
+      console.log("lastMessageEvent");
+
       // If the last message we saw is still ahead of the tick end time, we don't emit anything
       if (compare(this.#lastMessageEvent.receiveTime, end) > 0) {
+        console.log("comparelastMessageEvent");
+
         // Wait for the previous render frame to finish
         await this.#queueEmitState.currentPromise;
 
@@ -902,20 +956,23 @@ export class IterablePlayer implements Player {
       this.#lastMessageEvent = undefined;
     }
 
-    // If we take too long to read the tick data, we set the player into a BUFFERING presence. This
-    // indicates that the player is waiting to load more data. When the tick finally finishes, we
-    // clear this timeout.
+    // 如果我们花太长时间读取刻度数据，我们会将玩家设置为缓冲状态。这
+    // 表示玩家正在等待加载更多数据。当滴答声终于结束时，我们
+    //清除此超时。
     const tickTimeout = setTimeout(() => {
+      console.log("tickTimeout");
+
       this.#presence = PlayerPresence.BUFFERING;
       this.#queueEmitState();
     }, 500);
 
     try {
-      // Read from the iterator through the end of the tick time
+      // 从迭代器读取到刻度时间结束
       for (;;) {
         if (!this.#playbackIterator) {
           throw new Error("Invariant. this._playbackIterator is undefined.");
         }
+        console.log("for");
 
         const result = await this.#playbackIterator.next();
         if (result.done === true || this.#nextState) {
@@ -924,21 +981,30 @@ export class IterablePlayer implements Player {
         const iterResult = result.value;
 
         if (iterResult.type === "problem") {
+          console.log("problem");
+
           this.#problemManager.addProblem(`connid-${iterResult.connectionId}`, iterResult.problem);
           continue;
         }
 
         if (iterResult.type === "stamp" && compare(iterResult.stamp, end) >= 0) {
+          console.log("stamp");
+
           this.#lastStamp = iterResult.stamp;
           break;
         }
 
         if (iterResult.type === "message-event") {
+          console.log("message-event");
+
           // The message is past the tick end time, we need to save it for next tick
           if (compare(iterResult.msgEvent.receiveTime, end) > 0) {
+            console.log("message-eventcompare");
+
             this.#lastMessageEvent = iterResult.msgEvent;
             break;
           }
+          console.log("message-eventpush");
 
           msgEvents.push(iterResult.msgEvent);
         }
@@ -954,34 +1020,42 @@ export class IterablePlayer implements Player {
       return;
     }
 
-    // Wait on any active emit state to finish as part of this tick
-    // Without waiting on the emit state to finish we might drop messages since our emitState
-    // might get debounced
+    // 等待任何激活的发射状态作为此记号的一部分完成
+    //如果不等待发射状态完成，我们可能会丢弃消息，因为我们的发射状态
+    //可能会被开除
     await this.#queueEmitState.currentPromise;
 
     this.#currentTime = end;
     this.#messages = msgEvents;
+    console.log("触发 #queueEmitState");
+
     this.#queueEmitState();
 
-    // This tick has reached the end of the untilTime so we go back to pause
+    // 他的滴答声已经到了untilTime的末尾，所以我们回去暂停
     if (this.#untilTime && compare(this.#currentTime, this.#untilTime) >= 0) {
+      console.log("untilTime");
+
+      // 暂停播放
       this.pausePlayback();
     }
-  }
-
+    console.log("结束tick enddddd");
+  } // 结束
+  // 触发 ‘idle’ 后 触发下面函数，作用是中止播放
   async #stateIdle() {
+    console.log("触发IDLE");
+
     assert(this.#abort == undefined, "Invariant: some other abort controller exists");
 
     this.#isPlaying = false;
     this.#presence = PlayerPresence.PRESENT;
 
-    // set the latest value of the loaded ranges for the next emit state
+    // 为下一个发射状态设置加载范围的最新值
     this.#progress = {
       ...this.#progress,
       fullyLoadedFractionRanges: this.#bufferedSource.loadedRanges(),
       messageCache: this.#progress.messageCache,
     };
-
+    //  AbortController 接口表示一个控制器对象，允许你根据需要中止一个或多个 Web 请求。
     const abort = (this.#abort = new AbortController());
     const aborted = new Promise((resolve) => {
       abort.signal.addEventListener("abort", resolve);
@@ -1006,9 +1080,11 @@ export class IterablePlayer implements Player {
     this.#queueEmitState();
     await aborted;
     this.#bufferedSource.off("loadedRangesChange", rangeChangeHandler);
-  }
-
+  } // end
+  // 触发 ‘play’ 后，执行下面函数
   async #statePlay() {
+    console.log("statePlay---->");
+
     this.#presence = PlayerPresence.PRESENT;
 
     if (!this.#currentTime) {
@@ -1023,9 +1099,15 @@ export class IterablePlayer implements Player {
     const allTopics = this.#allTopics;
 
     try {
+      // 不断地视频 这个while才是不断地模拟视频进度条的关键所在
+      // 点击暂停后 this.#nextState就有值了，所以while就不成立了，所以while结束
       while (this.#isPlaying && !this.#hasError && !this.#nextState) {
+        console.log("statePlay: tick");
+
         if (compare(this.#currentTime, this.#end) >= 0) {
-          // Playback has ended. Reset internal trackers for maintaining the playback speed.
+          console.log("statePlay: playback has ended");
+
+          // 播放已结束。重置内部跟踪器以保持播放速度
           this.#lastTickMillis = undefined;
           this.#lastRangeMillis = undefined;
           this.#lastStamp = undefined;
@@ -1034,16 +1116,17 @@ export class IterablePlayer implements Player {
         }
 
         const start = Date.now();
-
+        // 关键
         await this.#tick();
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         if (this.#nextState) {
           return;
         }
 
-        // Update with the latest loaded ranges from the buffered source
-        // The messageCache is updated separately by block loader events
+        // 使用缓冲源中最新加载的范围进行更新
+        // messageCache由块加载程序事件单独更新
         this.#progress = {
+          // fullyLoadedFractionRanges 这个才是最最关键，指示加载的范围
           fullyLoadedFractionRanges: this.#bufferedSource.loadedRanges(),
           messageCache: this.#progress.messageCache,
           memoryInfo: {
@@ -1052,24 +1135,27 @@ export class IterablePlayer implements Player {
           },
         };
 
-        // If subscriptions changed, update to the new subscriptions
+        // 如果订阅已更改，请更新到新订阅
         if (this.#allTopics !== allTopics) {
+          console.log("allTopics changed");
           // Discard any last message event since the new iterator will repeat it
           this.#lastMessageEvent = undefined;
 
-          // Bail playback and reset the playback iterator when topics have changed so we can load
+          // 当主题发生变化时，暂停播放并重置播放迭代器，以便我们可以加载
           // the new topics
           this.#setState("reset-playback-iterator");
           return;
         }
 
         const time = Date.now() - start;
-        // make sure we've slept at least 16 millis or so (aprox 1 frame)
-        // to give the UI some time to breathe and not burn in a tight loop
+        // 确保我们至少睡了16毫秒左右（大约1帧）
+        //给UI一些呼吸的时间，而不是在紧张的循环中燃烧
         if (time < 16) {
+          console.log("time < 16");
           await delay(16 - time);
         }
       }
+      console.log("while 结束");
     } catch (err) {
       this.#setError((err as Error).message, err);
       this.#queueEmitState();
@@ -1077,6 +1163,8 @@ export class IterablePlayer implements Player {
   }
 
   async #stateClose() {
+    console.log("stateClose--->");
+
     this.#isPlaying = false;
     this.#metricsCollector.close();
     await this.#blockLoader?.stopLoading();
@@ -1090,6 +1178,8 @@ export class IterablePlayer implements Player {
   }
 
   async #startBlockLoading() {
+    console.log("statePlay: startBlockLoading--->");
+
     await this.#blockLoader?.startLoading({
       progress: async (progress) => {
         this.#progress = {

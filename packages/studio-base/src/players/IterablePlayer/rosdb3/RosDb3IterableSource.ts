@@ -37,6 +37,8 @@ export class RosDb3IterableSource implements IIterableSource {
   }
 
   public async initialize(): Promise<Initalization> {
+    console.log("RosDb3IterableSource--initialize");
+
     const res = await fetch(
       // foxglove-depcheck-used: babel-plugin-transform-import-meta
       new URL("@foxglove/sql.js/dist/sql-wasm.wasm", import.meta.url).toString(),
@@ -66,7 +68,7 @@ export class RosDb3IterableSource implements IIterableSource {
     const problems: PlayerProblem[] = [];
     const topics: Topic[] = [];
     const topicStats = new Map<string, TopicStats>();
-    // ROS 2 .db3 files do not contain message definitions, so we can only support well-known ROS types.
+    // ROS2.db3文件不包含消息定义，因此我们只能支持众所周知的ROS类型。
     const datatypes: RosDatatypes = new Map([...ROS2_TO_DEFINITIONS, ...basicDatatypes]);
     const messageDefinitionsByTopic: MessageDefinitionsByTopic = {};
     const parsedMessageDefinitionsByTopic: ParsedMessageDefinitionsByTopic = {};

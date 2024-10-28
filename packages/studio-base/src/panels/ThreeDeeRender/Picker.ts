@@ -39,15 +39,15 @@ export type PickerOptions = {
 };
 
 /**
- * Handles picking of objects in a scene (detecting 3D objects at a given screen
- * coordinate). This works by performing a second rendering pass after
- * `WebGLRenderer.renderLists` has been populated from a normal rendering pass.
- * In the second pass, objectIds are written as colors to a small offscreen
- * rendering target surrounding the sample point. The color at the sample point
- * is then read back and used to determine which object was picked.
- *
- * Objects can set their own `userData.pickingMaterial` to override the default
- * shader used for picking.
+ * 处理场景中对象的拾取（在给定屏幕上检测3D对象
+坐标这是通过在
+*`WebGLRenderer.renderLists`已从正常渲染过程填充。
+*在第二个过程中，objectId以颜色形式写入屏幕外的一个小区域
+*渲染采样点周围的目标。采样点处的颜色
+*然后读回并用于确定拾取了哪个对象。
+*
+*对象可以设置自己的“userData.pickingMaterial”来覆盖默认值
+*用于拾取的着色器。
  */
 export class Picker {
   #gl: THREE.WebGLRenderer;
@@ -64,7 +64,9 @@ export class Picker {
     this.#gl = gl;
     this.#scene = scene;
 
-    // This is the PIXEL_WIDTH x PIXEL_WIDTH render target we use to do the picking
+    // 这是我们用于进行拾取的PIXEL_WIDTH x PIXEL_WADTH渲染目标
+    // 是一个缓冲，就是在这个缓冲中，视频卡为正在后台渲染的场景绘制像素；
+    // 它用于不同的效果，例如用于在一个图像显示在屏幕上之前先做一些处理
     this.#pickingTarget = new THREE.WebGLRenderTarget(PIXEL_WIDTH, PIXEL_WIDTH, {
       minFilter: THREE.NearestFilter,
       magFilter: THREE.NearestFilter,
@@ -72,8 +74,8 @@ export class Picker {
       generateMipmaps: false,
     });
     this.#pixelBuffer = new Uint8Array(4);
-    // We need to be inside of .render in order to call renderBufferDirect in
-    // renderList() so create an empty scene
+    // 我们需要在.render内部才能在中调用renderBufferDirect
+    // renderList（），以便创建一个空场景
     this.#emptyScene = new THREE.Scene();
   }
 

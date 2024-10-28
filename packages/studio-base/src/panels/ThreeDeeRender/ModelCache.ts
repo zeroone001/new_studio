@@ -63,6 +63,8 @@ export class ModelCache {
     opts: LoadModelOptions,
     reportError: ErrorCallback,
   ): Promise<LoadedModel | undefined> {
+    console.log(`ModelCache Loading model ${url}`);
+
     let promise = this.#models.get(url);
     if (promise) {
       return await promise;
@@ -84,6 +86,8 @@ export class ModelCache {
     options: LoadModelOptions,
     reportError: ErrorCallback,
   ): Promise<LoadedModel> {
+    console.log(`ModelCache Loading loadModel ${url}`);
+
     const GLB_MAGIC = 0x676c5446; // "glTF"
 
     const asset = await this.#fetchAsset(url, { referenceUrl: options.referenceUrl });
@@ -132,6 +136,8 @@ export class ModelCache {
   }
 
   async #loadGltf(url: string, reportError: ErrorCallback): Promise<LoadedModel> {
+    console.log(`ModelCache Loading gltf ${url}`);
+
     const onError = (assetUrl: string) => {
       const originalUrl = unrewriteUrl(assetUrl);
       log.error(`Failed to load GLTF asset "${originalUrl}" for "${url}"`);
@@ -157,6 +163,8 @@ export class ModelCache {
 
   #loadSTL(url: string, buffer: ArrayBuffer, meshUpAxis: MeshUpAxis): LoadedModel {
     // STL files do not reference any external assets, no LoadingManager needed
+    console.log(`ModelCache Loading stl ${url}`);
+
     const stlLoader = new STLLoader();
     const bufferGeometry = stlLoader.parse(buffer);
     log.debug(`Finished loading STL from ${url}`);
@@ -187,6 +195,8 @@ export class ModelCache {
     ignoreUpAxis: boolean,
     reportError: ErrorCallback,
   ): Promise<LoadedModel> {
+    console.log(`ModelCache Loading collada ${url}`);
+
     const onError = (assetUrl: string) => {
       const originalUrl = unrewriteUrl(assetUrl);
       log.error(`Failed to load COLLADA asset "${originalUrl}" for "${url}"`);

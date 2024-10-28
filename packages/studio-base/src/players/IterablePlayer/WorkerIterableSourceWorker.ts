@@ -25,6 +25,8 @@ export class WorkerIterableSourceWorker implements IIterableSource {
   }
 
   public async initialize(): Promise<Initalization> {
+    console.log("WorkerIterableSourceWorker.initialize111");
+
     return await this._source.initialize();
   }
 

@@ -207,7 +207,7 @@ export function Sidebars<LeftKey extends string, RightKey extends string>(
       }
       <div className={classes.mosaicWrapper}>
         <MosaicWithoutDragDropContext<LayoutNode>
-          className=""
+          className="dasddasdas"
           value={mosaicValue}
           onChange={onChangeMosaicValue}
           renderTile={(id) => {

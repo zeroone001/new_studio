@@ -97,7 +97,7 @@ const mainConfig = (env: unknown, argv: WebpackArgv): Configuration => {
     <script>
       global = globalThis;
     </script>
-    <body>
+    <body class="123">
       <div id="root"></div>
     </body>
   </html>

@@ -510,6 +510,7 @@ export default function Start(): JSX.Element {
                     <ListItemButton
                       disableGutters
                       onClick={() => {
+                        console.log("selectRecent-->", recent.id);
                         selectRecent(recent.id);
                       }}
                       className={classes.recentListItemButton}

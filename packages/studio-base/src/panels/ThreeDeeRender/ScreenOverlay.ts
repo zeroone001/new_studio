@@ -13,7 +13,9 @@ export class ScreenOverlay extends THREE.Object3D {
 
   public constructor(renderer: IRenderer) {
     super();
-
+    // 过它，你可以使用自定义的着色器，在 WebGL 环境中直接运行。
+    // 着色器可以将 Three.js 中的 JavaScript 网格转换为屏幕上的像素。
+    // 通过这些自定义的着色器，你可以明确地指定对象的渲染方式
     this.#material = new THREE.ShaderMaterial({
       transparent: true,
       depthTest: false,

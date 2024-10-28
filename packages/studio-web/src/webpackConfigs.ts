@@ -139,10 +139,11 @@ export const mainConfig =
       </style>
     </head>
     <script>
+        var a = 1;
       global = globalThis;
       globalThis.FOXGLOVE_STUDIO_DEFAULT_LAYOUT = [/*FOXGLOVE_STUDIO_DEFAULT_LAYOUT_PLACEHOLDER*/][0];
     </script>
-    <body>
+    <body class="ceshi">
       <div id="root"></div>
     </body>
   </html>

@@ -72,15 +72,15 @@ function isVersionedPanelConfig(config: unknown): config is VersionedPanelConfig
 }
 
 type PanelExtensionAdapterProps = {
-  /** function that initializes the panel extension */
+  /** 初始化面板扩展的函数 */
   initPanel:
     | ExtensionPanelRegistration["initPanel"]
     | ((context: BuiltinPanelExtensionContext) => void);
   /**
-   * If defined, the highest supported version of config the panel supports.
-   * Used to prevent older implementations of a panel from trying to access
-   * newer, incompatible versions of the panel's config. Panels should include a
-   * numbered foxgloveConfigVersion property in their config to control this.
+   * 如果已定义，则为面板支持的配置的最高支持版本。
+   *用于防止面板的旧实现尝试访问
+   *更新的、不兼容的面板配置版本。面板应包括
+   *在其配置中对foxgloveConfigVersion属性进行编号以控制此操作。
    */
   highestSupportedConfigVersion?: number;
   config: unknown;
@@ -97,24 +97,25 @@ function selectInstalledMessageConverters(state: ExtensionCatalog) {
 
 type RenderFn = NonNullable<PanelExtensionContext["onRender"]>;
 /**
- * PanelExtensionAdapter renders a panel extension via initPanel
+ * PanelExtensionAdapter通过initPanel呈现面板扩展
  *
- * The adapter creates a PanelExtensionContext and invokes initPanel using the context.
+ * 适配器创建一个PanelExtensionContext，
+ * 并使用该上下文调用initPanel。
  */
 function PanelExtensionAdapter(
   props: React.PropsWithChildren<PanelExtensionAdapterProps>,
 ): JSX.Element {
   const { initPanel, config, saveConfig, highestSupportedConfigVersion } = props;
 
-  // Unlike the react data flow, the config is only provided to the panel once on setup.
+  // 与react数据流不同，配置只在设置时提供给面板一次。
   // The panel is meant to manage the config and call saveConfig on its own.
   //
   // We store the config in a ref to avoid re-initializing the panel when the react config
   // changes.
   const initialState = useLatest(config);
 
+  // 数据流在这 重要
   const messagePipelineContext = useMessagePipeline(selectContext);
-
   const { playerState, pauseFrame, setSubscriptions, seekPlayback, sortedTopics } =
     messagePipelineContext;
 
@@ -171,7 +172,7 @@ function PanelExtensionAdapter(
 
   const [sharedPanelState, setSharedPanelState] = useSharedPanelState();
 
-  // Register handlers to update the app settings we subscribe to
+  // 注册处理程序以更新我们订阅的应用程序设置
   useEffect(() => {
     const handlers = new Map<string, (newValue: AppSettingValue) => void>();
 
@@ -205,20 +206,19 @@ function PanelExtensionAdapter(
     [messagePipelineContext.messageEventsBySubscriberId, panelId],
   );
 
-  // The rendering ref is set when we've begin rendering the frame (calling the panel's render
-  // function)
+  // 当我们开始渲染帧（调用面板的渲染作用
   //
-  // If another update arrives before the panel finishes rendering, we will update the
-  // slowRenderState to indicate that the panel could not keep up with rendering relative to
-  // updates.
+  // 如果另一个更新在面板完成渲染之前到达，我们将更新
+  // slowRenderState表示面板无法跟上相对于的渲染
+  // 更新。
   const renderingRef = useRef<boolean>(false);
   useLayoutEffect(() => {
     /**
-     * We need to check that the panel has been initialized because the renderFn function is being
-     * called between the initPanel's useLayoutEffect cleanup and initPanel being called
-     * again even if setRenderFn(undefined) is called in the cleanup function. This causes
-     * the old renderFn to be called in this effect and pauseFrame to happen, but it is never
-     * resumed, thus causing a 5 second delay in all panels in the layout to be loaded.
+     * 我们需要检查面板是否已初始化，因为renderFn函数正在
+     *在initPanel的useLayoutEffect清理和正在调用的initPanel之间调用
+     *即使在cleanup函数中调用了setRenderFn（未定义）。这导致
+     *在该效果中调用的旧renderFn和pauseFrame将发生，但它永远不会
+     *恢复，从而在要加载的布局中的所有面板中造成5秒的延迟。
      */
     if (!renderFn || !isPanelInitializedRef.current) {
       return;
@@ -250,7 +250,7 @@ function PanelExtensionAdapter(
     setSlowRender(false);
     const resumeFrame = pauseFrame(panelId);
 
-    // tell the panel to render and lockout future renders until rendering is complete
+    // 告诉面板渲染并锁定未来的渲染，直到渲染完成
     renderingRef.current = true;
     try {
       setError(undefined);
@@ -531,9 +531,9 @@ function PanelExtensionAdapter(
     updatePanelSettingsTree,
     setMessagePathDropConfig,
   ]);
-
+  // 这个就是3D视图的DOM位置了
   const panelContainerRef = useRef<HTMLDivElement>(ReactNull);
-
+  // 下面三行代码做了一个监听，当这三个值发生变化时，会打印出来
   useValueChangedDebugLog(initPanel, "initPanel");
   useValueChangedDebugLog(panelId, "panelId");
   useValueChangedDebugLog(partialExtensionContext, "partialExtensionContext");
@@ -547,35 +547,37 @@ function PanelExtensionAdapter(
     );
   }, [initialState, highestSupportedConfigVersion]);
 
-  // Manage extension lifecycle by calling initPanel() when the panel context changes.
+  // 当面板上下文发生变化时，通过调用initPanel（）来管理扩展生命周期。
   //
-  // If we useEffect here instead of useLayoutEffect, the prevRenderState can get polluted with data
-  // from a previous panel instance.
+  // 如果我们在这里使用Effect而不是LayoutEffect，那么prevRenderState可能会被前一个面板实例的数据污染。
   useLayoutEffect(() => {
     if (!panelContainerRef.current) {
       throw new Error("Expected panel container to be mounted");
     }
 
-    // If the config is too new for this panel to support we bail and don't do any panel initialization
-    // We will instead show a warning message to the user
+    // 如果配置对于这个面板来说太新而无法支持，我们将退出，不进行任何面板初始化
+    // 我们将向用户显示一条警告消息
     if (configTooNew) {
       return;
     }
 
-    // Reset local state when the panel element is mounted or changes
+    // 安装或更改面板元件时重置本地状态
     setRenderFn(undefined);
     renderingRef.current = false;
     setSlowRender(false);
 
     setBuildRenderState(() => initRenderStateBuilder());
-
+    // 怪不得找不到
     const panelElement = document.createElement("div");
     panelElement.style.width = "100%";
     panelElement.style.height = "100%";
     panelElement.style.overflow = "hidden";
+    panelElement.className = "PanelExtensionAdapter initPanel";
     panelContainerRef.current.appendChild(panelElement);
 
-    log.info(`Init panel ${panelId}`);
+    // log.info(`Init panel ${panelId}`);
+    console.log(`Init panel ${panelId}`);
+
     const onUnmount = initPanel({
       panelElement,
       ...partialExtensionContext,
@@ -622,9 +624,11 @@ function PanelExtensionAdapter(
         ...style,
       }}
     >
+      位于PanelExtensionAdapter
       <PanelToolbar />
       {configTooNew && <PanelConfigVersionError />}
       {props.children}
+      {/* 主要结构塞到下面这里了 */}
       <div style={{ flex: 1, overflow: "hidden" }} ref={panelContainerRef} />
     </div>
   );

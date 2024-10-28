@@ -34,9 +34,9 @@ export type ParsedMessageDefinitionsByTopic = {
 
 export type TopicSelection = Map<string, SubscribePayload>;
 
-// A `Player` is a class that manages playback state. It manages subscriptions,
-// current time, which topics and datatypes are available, and so on.
-// For more details, see the types below.
+// “播放器”是一个管理播放状态的类。它管理订阅，
+//当前时间，哪些主题和数据类型可用，等等。
+//有关更多详细信息，请参阅以下类型。
 
 export interface Player {
   // The main way to get information out the player is to set a listener. This listener will be
@@ -266,16 +266,16 @@ export type BlockCache = {
   startTime: Time;
 };
 
-// Contains different kinds of progress indications
+// 包含不同类型的进度指示
 export type Progress = Readonly<{
-  // Indicate which ranges are loaded
+  // 指示加载的范围
   fullyLoadedFractionRanges?: Range[];
 
-  // A raw view into the cached binary data stored by the MemoryCacheDataProvider. Only present when
-  // using the RandomAccessPlayer.
+  // MemoryCacheDataProvider存储的缓存二进制数据的原始视图。仅当
+  // 使用RandomAccess Player。
   readonly messageCache?: BlockCache;
 
-  /** Memory usage information, e.g. the memory size occupied by preloaded or buffered messages. */
+  /** 内存使用信息，例如预加载或缓冲的消息所占用的内存大小. */
   readonly memoryInfo?: Record<string, number>;
 }>;
 

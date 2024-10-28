@@ -30,12 +30,12 @@ export type PanelInfo = {
   extensionNamespace?: ExtensionNamespace;
 };
 
-/** PanelCatalog describes the interface for getting available panels */
+/** PanelCatalog描述了获取可用面板的界面 */
 export interface PanelCatalog {
-  /** get a list of the available panels */
+  /** 获取可用面板的列表 */
   getPanels(): readonly PanelInfo[];
 
-  /** Get panel information for a specific panel type (i.e. 3d, map, image, etc) */
+  /** 获取特定面板类型的面板信息（即3d、地图、图像等） */
   getPanelByType(type: string): PanelInfo | undefined;
 }
 

@@ -1,15 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
-//
-// This file incorporates work covered by the following copyright and
-// permission notice:
-//
-//   Copyright 2018-2021 Cruise LLC
-//
-//   This source code is licensed under the Apache License, Version 2.0,
-//   found at http://www.apache.org/licenses/LICENSE-2.0
-//   You may not use this file except in compliance with the License.
 
 import {
   ArrowRepeatAll20Regular,
@@ -106,7 +97,7 @@ export default function PlaybackControls(props: {
   const toggleRepeat = useCallback(() => {
     setRepeat((old) => !old);
   }, [setRepeat]);
-
+  // 播放按钮的点击事件
   const togglePlayPause = useCallback(() => {
     if (isPlaying) {
       pause();
@@ -180,10 +171,13 @@ export default function PlaybackControls(props: {
 
   return (
     <>
+      {/* 重复适配器 */}
       <RepeatAdapter play={play} seek={seek} repeatEnabled={repeat} />
       <KeyListener global keyDownHandlers={keyDownHandlers} />
       <div className={classes.root}>
+        {/* 封装了进度条 */}
         <Scrubber onSeek={seek} />
+
         <Stack direction="row" alignItems="center" flex={1} gap={1} overflowX="auto">
           <Stack direction="row" alignItems="center" flex={1} gap={0.5}>
             {currentUserType !== "unauthenticated" && eventsSupported && (
@@ -195,6 +189,7 @@ export default function PlaybackControls(props: {
                 onClick={toggleCreateEventDialog}
               />
             )}
+            {/* 提示图标 */}
             <Tooltip
               // A desired workflow is the ability to copy data source info text (start, end, duration)
               // from the tooltip. However, there's a UX quirk where the tooltip will close if the user
@@ -218,8 +213,10 @@ export default function PlaybackControls(props: {
                 icon={<Info20Regular />}
               />
             </Tooltip>
+            {/* 播放时间相关 */}
             <PlaybackTimeDisplay onSeek={seek} onPause={pause} />
           </Stack>
+          {/* 前进后退和播放按钮 */}
           <Stack direction="row" alignItems="center" gap={1}>
             <HoverableIconButton
               disabled={disableControls}
@@ -250,6 +247,7 @@ export default function PlaybackControls(props: {
               }}
             />
           </Stack>
+          {/* 右侧播放倍数设置 */}
           <Stack direction="row" flex={1} alignItems="center" justifyContent="flex-end" gap={0.5}>
             <HoverableIconButton
               size="small"

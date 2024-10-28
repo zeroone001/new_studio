@@ -179,7 +179,7 @@ export function MessagePipelineProvider({ children, player }: ProviderProps): Re
   useEffect(() => {
     const dispatch = store.getState().dispatch;
     if (!player) {
-      // When there is no player, set the player state to the default to go back to a state where we
+      // 当没有玩家时，将玩家状态设置为默认状态以返回到我们
       // indicate the player is not present.
       dispatch({
         type: "update-player-state",
@@ -222,27 +222,23 @@ function concatProblems(origState: PlayerState, problems: PlayerProblem[]): Play
 }
 
 /**
- * The creation of the player listener is extracted as a separate function to prevent memory leaks.
- * When multiple closures are created inside of an outer function, V8 allocates one "context" object
- * to be shared by all the inner closures, holding the shared variables they access. As long as any
- * of the inner closures are still alive, the context and **all** the shared variables stay alive.
+ * 播放器侦听器的创建被提取为一个单独的函数，以防止内存泄漏。
+ *当在一个外部函数内部创建多个闭包时，V8会分配一个“上下文”对象
+ *由所有内部闭包共享，保存它们访问的共享变量。只要有
+ *的内部闭包仍然有效，上下文和**所有**共享变量仍然有效。
  *
- * In the case of MessagePipelineProvider, when the `listener` closure was created directly inside
- * the useEffect above, it would end up retaining a shared context that also retained the player
- * `state` variable returned by `usePlayerState()`, even though the listener closure didn't actually
- * use it. In particular, each time a new player was created in the useEffect, this caused it to
- * retain the old player's state (via the listener closure), creating a "linked list" effect that
- * caused the last state produced by each player (and therefore also its preloaded message blocks)
- * to be retained indefinitely as new data sources were swapped in.
+ * 在MessagePipelineProvider的情况下，当“listener”闭包直接在内部创建时
+ *使用上面的效果，它最终会保留一个共享的上下文，同时也保留了玩家
+ *“usePlayerState（）”返回的“state”变量，即使侦听器闭包实际上没有
+ *使用它。特别是，每次在useEffect中创建新玩家时，都会导致
+ *保留老玩家的状态（通过监听器关闭），创建一个“链表”效果
+ *导致每个播放器产生的最后一个状态（因此也导致其预加载的消息块）
+ *随着新数据源的交换而无限期地保留。
  *
- * To avoid this problem, we extract the closure creation into a module-level function where it
- * won't see variables from outer scopes that are potentially retained in the shared context due to
- * their use in other closures.
+ * 为了避免这个问题，我们将闭包创建提取到模块级函数中
+ *不会看到外部作用域中可能保留在共享上下文中的变量，因为
+ *它们在其他闭合件中的使用。
  *
- * This type of leak is discussed at:
- * - https://bugs.chromium.org/p/chromium/issues/detail?id=315190
- * - http://point.davidglasser.net/2013/06/27/surprising-javascript-memory-leak.html
- * - https://stackoverflow.com/questions/53985411/understanding-javascript-closure-variable-capture-in-v8
  */
 function createPlayerListener(args: {
   msPerFrameRef: React.MutableRefObject<number>;
@@ -318,10 +314,10 @@ function createPlayerListener(args: {
       store.getState().reset();
     }
     prevPlayerId = listenerPlayerState.playerId;
-
+    // 更新store的state
     updateState({
       type: "update-player-state",
-      playerState: newPlayerState,
+      playerState: newPlayerState, // 关键竟然在这个位置
       renderDone,
     });
 

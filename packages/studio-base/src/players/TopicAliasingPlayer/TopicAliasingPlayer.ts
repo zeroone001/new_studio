@@ -28,12 +28,12 @@ import {
 export type { TopicAliasFunctions };
 
 /**
- * This is a player that wraps an underlying player and applies aliases to all topic names
- * in data emitted from the player.
+ * 这是一个包装底层播放器并将别名应用于所有主题名称的播放器
+ * 在从播放器发出的数据中。
  *
- * Aliases that alias input topics to other input topics or that request conflicting
- * aliases from multiple input topics to the same output topic are disallowed and flagged
- * as player problems
+ * 将输入主题别名为其他输入主题或请求冲突的别名
+ * 不允许并标记从多个输入主题到同一输出主题的别名
+ * 作为玩家的问题
  */
 export class TopicAliasingPlayer implements Player {
   readonly #player: Player;
@@ -55,8 +55,10 @@ export class TopicAliasingPlayer implements Player {
   // variable updates which can happen at a different time to new state from the wrapped player. The
   // mutex prevents invoking the listener concurrently.
   #listener?: MutexLocked<(state: PlayerState) => Promise<void>>;
-
+  // 这个class 其实没啥东西，关键是对IterablePlayer.ts的又又封了一层
+  // 关键函数，就一个#onPlayerState
   public constructor(player: Player) {
+    // #player 就是 IterablePlayer.ts
     this.#player = player;
     this.#skipAliasing = true;
     this.#inputs = {
@@ -67,6 +69,8 @@ export class TopicAliasingPlayer implements Player {
   }
 
   public setListener(listener: (playerState: PlayerState) => Promise<void>): void {
+    console.log("TopicAliasingPlayer.setListener");
+
     this.#listener = new MutexLocked(listener);
 
     this.#player.setListener(async (state) => {
@@ -106,6 +110,7 @@ export class TopicAliasingPlayer implements Player {
   }
 
   public startPlayback?(): void {
+    console.log("startPlayback1");
     this.#player.startPlayback?.();
   }
 
@@ -179,37 +184,47 @@ export class TopicAliasingPlayer implements Player {
   }
 
   async #onPlayerState(playerState: PlayerState) {
-    // If we are already emitting a player state, avoid emitting another one
-    // This is a guard against global variable emits
+    // playerState 就是上层IterablePlayer传回来的data
+    console.log("onPlayerState--->", playerState);
+
+    // 如果我们已经在发射一个玩家状态，请避免发射另一个状态
+    //这是对全局变量排放的防范
     if (this.#listener?.isLocked() === true) {
       return;
     }
 
     return await this.#listener?.runExclusive(async (listener) => {
+      console.log("onPlayerState2", listener);
+
       if (this.#skipAliasing) {
         await listener(playerState);
         return;
       }
 
-      // The player topics have changed so we need to re-build the aliases because player topics
-      // are an input to the alias functions.
+      // 玩家主题已经更改，因此我们需要重新构建别名，因为玩家主题
+      // 是别名函数的输入。
       if (playerState.activeData?.topics !== this.#inputs.topics) {
+        console.log("topics changed");
+
         this.#inputs = { ...this.#inputs, topics: playerState.activeData?.topics };
         const stateProcessor = this.#stateProcessorFactory.buildStateProcessor(this.#inputs);
 
-        // if the state processor is changed, then we might need to re-process subscriptions since
-        // we might now be able to produce new subscriptions
+        // 如果状态处理器发生了更改，那么我们可能需要重新处理订阅，因为
+        // 我们现在可能能够生成新的订阅
         if (this.#stateProcessor !== stateProcessor) {
+          console.log("state processor changed");
+
           this.#stateProcessor = stateProcessor;
           this.#resetSubscriptions();
         }
       }
 
-      // remember the last player state so we can re-use it when global variables are set
+      // 记住最后一个玩家状态，这样我们就可以在设置全局变量时重用它
       this.#lastPlayerState = playerState;
 
-      // Process the player state using the latest aliases
+      // 使用最新别名处理玩家状态
       const newState = this.#stateProcessor.process(playerState, this.#subscriptions);
+
       await listener(newState);
     });
   }

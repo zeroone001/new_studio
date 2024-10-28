@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import { StrictMode, useEffect } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 
 import Logger from "@foxglove/log";
 import type { IDataSourceFactory } from "@foxglove/studio-base";
@@ -14,11 +14,11 @@ import { canRenderApp } from "./canRenderApp";
 
 const log = Logger.getLogger(__filename);
 
-function LogAfterRender(props: React.PropsWithChildren): JSX.Element {
+function LogAfterRender(props) {
   useEffect(() => {
-    // Integration tests look for this console log to indicate the app has rendered once
+    // 集成测试查找此控制台日志以指示应用程序已渲染一次
     // We use console.debug to bypass our logging library which hides some log levels in prod builds
-    console.debug("App rendered");
+    console.debug("App 已渲染");
   }, []);
   return <>{props.children}</>;
 }
@@ -55,44 +55,54 @@ export async function main(getParams: () => Promise<MainParams> = async () => ({
   );
 
   if (!canRender) {
-    // eslint-disable-next-line react/no-deprecated
-    ReactDOM.render(
+    // 老的写法
+    // ReactDOM.render(
+    //   <StrictMode>
+    //     <LogAfterRender>
+    //       <CssBaseline>{banner}</CssBaseline>
+    //     </LogAfterRender>
+    //   </StrictMode>,
+    //   rootEl,
+    // );
+    createRoot(rootEl).render(
       <StrictMode>
         <LogAfterRender>
           <CssBaseline>{banner}</CssBaseline>
         </LogAfterRender>
       </StrictMode>,
-      rootEl,
     );
     return;
   }
 
-  // Use an async import to delay loading the majority of studio-base code until the CompatibilityBanner
-  // can be displayed.
+  // 使用异步导入延迟加载大部分studio基本代码，直到可以显示CompatibilityBanner。
   const { installDevtoolsFormatters, overwriteFetch, waitForFonts, initI18n, StudioApp } =
     await import("@foxglove/studio-base");
+
   installDevtoolsFormatters();
   overwriteFetch();
-  // consider moving waitForFonts into App to display an app loading screen
+  // 考虑将waitForFonts移动到应用程序中以显示应用程序加载屏幕
   await waitForFonts();
+  // 是一个用于国际化（i18n）的函数
   await initI18n();
 
   const { WebRoot } = await import("./WebRoot");
+
   const params = await getParams();
+  console.log("getParams", params);
+
+  // 这是三元表达式的简写，这个时候dataSources为空
   const rootElement = params.rootElement ?? (
     <WebRoot extraProviders={params.extraProviders} dataSources={params.dataSources}>
       <StudioApp />
     </WebRoot>
   );
 
-  // eslint-disable-next-line react/no-deprecated
-  ReactDOM.render(
+  createRoot(rootEl).render(
     <StrictMode>
       <LogAfterRender>
         {banner}
         {rootElement}
       </LogAfterRender>
     </StrictMode>,
-    rootEl,
   );
 }

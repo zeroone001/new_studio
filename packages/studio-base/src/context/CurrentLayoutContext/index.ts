@@ -133,7 +133,7 @@ export function usePanelMosaicId(): string {
 export function useCurrentLayoutActions(): CurrentLayoutActions {
   return useGuaranteedContext(CurrentLayoutContext).actions;
 }
-
+//
 export function useCurrentLayoutSelector<T>(selector: (layoutState: LayoutState) => T): T {
   const currentLayout = useGuaranteedContext(CurrentLayoutContext);
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);

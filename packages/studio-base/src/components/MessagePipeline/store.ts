@@ -88,6 +88,7 @@ export type MessagePipelineStateAction =
   | UpdatePlayerStateAction
   | { type: "set-publishers"; id: string; payloads: AdvertiseOptions[] };
 
+// 创建 管理 通道
 export function createMessagePipelineStore({
   promisesToWaitForRef,
   initialPlayer,
@@ -105,7 +106,7 @@ export function createMessagePipelineStore({
     newTopicsBySubscriberId: new Map(),
     lastMessageEventByTopic: new Map(),
     lastCapabilities: [],
-
+    // 设置新的值
     dispatch(action) {
       set((state) => reducer(state, action));
     },
@@ -377,6 +378,8 @@ function updatePlayerStateAction(
   const capabilities = action.playerState.capabilities;
   const player = prevState.player;
   if (player && !shallowequal(capabilities, prevState.lastCapabilities)) {
+    console.log("store newPublicState");
+
     newPublicState.startPlayback = capabilities.includes(PlayerCapabilities.playbackControl)
       ? player.startPlayback?.bind(player)
       : undefined;

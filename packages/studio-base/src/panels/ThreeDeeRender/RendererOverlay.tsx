@@ -111,7 +111,7 @@ type Props = {
 };
 
 /**
- * Provides DOM overlay elements on top of the 3D scene (e.g. stats, debug GUI).
+ * 在3D场景的顶部提供DOM覆盖元素（例如统计数据、调试GUI）。
  */
 export function RendererOverlay(props: Props): JSX.Element {
   const { t } = useTranslation("threeDee");
