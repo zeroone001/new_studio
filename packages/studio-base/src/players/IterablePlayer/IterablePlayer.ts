@@ -1,7 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
-
+// IterablePlayer
 import assert from "assert";
 import * as _ from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
@@ -178,7 +178,7 @@ export class IterablePlayer implements Player {
 
   /** Promise that resolves when the player is closed. Only used for testing currently */
   public readonly isClosed: Promise<void>;
-  #resolveIsClosed: () => void = () => {};
+  #resolveIsClosed: () => void = () => { };
 
   public constructor(options: IterablePlayerOptions) {
     const { metricsCollector, urlParams, source, name, enablePreload, sourceId } = options;
@@ -674,7 +674,7 @@ export class IterablePlayer implements Player {
     }, 100);
 
     try {
-      for (;;) {
+      for (; ;) {
         const result = await this.#playbackIterator.next();
         if (result.done === true) {
           break;
@@ -968,7 +968,7 @@ export class IterablePlayer implements Player {
 
     try {
       // 从迭代器读取到刻度时间结束
-      for (;;) {
+      for (; ;) {
         if (!this.#playbackIterator) {
           throw new Error("Invariant. this._playbackIterator is undefined.");
         }

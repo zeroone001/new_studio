@@ -96,6 +96,7 @@ const selectPlayerProblems = ({ playerState }: MessagePipelineContext) => player
 const selectIsPlaying = (ctx: MessagePipelineContext) =>
   ctx.playerState.activeData?.isPlaying === true;
 const selectPause = (ctx: MessagePipelineContext) => ctx.pausePlayback;
+// player 开始播放
 const selectPlay = (ctx: MessagePipelineContext) => {
   // console.log("selectPlay");
   return ctx.startPlayback;

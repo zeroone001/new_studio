@@ -140,10 +140,10 @@ overrides:
 
   - rules:
       "@typescript-eslint/no-explicit-any": off
-    files:
-      - "**/*.stories.tsx"
-      - "**/*.test.tsx"
-      - "**/*.test.ts"
+    # files:
+    #   - "**/*.stories.tsx"
+    #   - "**/*.test.tsx"
+    #   - "**/*.test.ts"
 
   - rules:
       react/forbid-component-props: off

@@ -23,6 +23,7 @@ import Connection from "./Connection";
 import Start from "./Start";
 
 const DataSourceDialogItems = ["start", "file", "demo", "remote", "connection"] as const;
+// typeof 获取对象的属性类型
 export type DataSourceDialogItem = (typeof DataSourceDialogItems)[number];
 
 type DataSourceDialogProps = {

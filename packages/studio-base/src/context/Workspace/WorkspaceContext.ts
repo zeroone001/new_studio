@@ -68,6 +68,7 @@ export const WorkspaceStoreSelectors = {
 
 /**
  * Fetches values from the workspace store.
+ * 从工作区存储中获取值
  */
 export function useWorkspaceStore<T>(selector: (store: WorkspaceContextStore) => T): T {
   const context = useGuaranteedContext(WorkspaceContext);

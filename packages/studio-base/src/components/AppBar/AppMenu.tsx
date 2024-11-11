@@ -74,6 +74,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
           handleNestedMenuClose();
         },
       },
+      // 打开本地文件
       {
         type: "item",
         label: t("openLocalFile"),
@@ -147,6 +148,7 @@ export function AppMenu(props: AppMenuProps): JSX.Element {
       {
         type: "divider",
       },
+      // 通过文件导入布局……
       {
         type: "item",
         label: t("importLayoutFromFile"),

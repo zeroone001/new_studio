@@ -52,7 +52,7 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
 
   const analytics = useAnalytics();
   const metricsCollector = useMemo(() => new AnalyticsMetricsCollector(analytics), [analytics]);
-  // basePlayer 其实是来自Ros2LocalBagDataSourceFactory的里面的  IterablePlayer .ts
+  // basePlayer 其实是来自 Ros2LocalBagDataSourceFactory 的里面的  IterablePlayer .ts
   const [basePlayer, setBasePlayer] = useState<Player | undefined>();
 
   const { recents, addRecent } = useIndexedDbRecents();
@@ -61,13 +61,12 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
     if (!basePlayer) {
       return undefined;
     }
-    // 在这里初始化的,basePlayer 就是IterablePlayer
+    // 在这里初始化的, basePlayer 就是IterablePlayer
     return new TopicAliasingPlayer(basePlayer);
   }, [basePlayer]);
 
-  // 当别名函数发生更改时更新它们。我们不需要重新任命球员经理
-  //因为当地的一切都没有改变。
   const extensionCatalogContext = useContext(ExtensionCatalogContext);
+  // 终于找到执行代码了
   useEffect(() => {
     // 如果我们没有稳定的空别名函数
     const emptyAliasFunctions: Immutable<TopicAliasFunctions> = [];
@@ -99,7 +98,24 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
   // 上传ros2文件的时候触发这个函数
   const selectSource = useCallback(
     async (sourceId: string, args?: DataSourceArgs) => {
-      console.log("Select Source:", sourceId, args);
+      console.log("上传ros2文件的时候触发这个函数，selectSource:", sourceId, args);
+      /*
+        const dataSources = useMemo(() => {
+          const sources = [
+            new Ros1LocalBagDataSourceFactory(),
+            new Ros2LocalBagDataSourceFactory(),
+            new FoxgloveWebSocketDataSourceFactory(),
+            new RosbridgeDataSourceFactory(),
+            new UlogLocalDataSourceFactory(),
+            new SampleNuscenesDataSourceFactory(),
+            new McapLocalDataSourceFactory(),
+            new RemoteDataSourceFactory(),
+          ];
+
+          return props.dataSources ?? sources;
+        }, [props.dataSources]);
+        dataSources 就是 playerSources
+      */
 
       const foundSource = playerSources.find(
         (source) => source.id === sourceId || source.legacyIds?.includes(sourceId),
@@ -154,7 +170,8 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
           }
           case "file": {
             console.log("file--1");
-
+            // 这是另一个文件里的代码
+            // selectSource(foundSource.id, { type: "file", handle: fileHandle });
             const handle = args.handle;
             const files = args.files;
 
@@ -196,7 +213,7 @@ export default function PlayerManager(props: PropsWithChildren<PlayerManagerProp
                   throw new Error(`Permission denied: ${handle.name}`);
                 }
               }
-
+              // 这个就是那个文件 重要
               const file = await handle.getFile();
               if (!isMounted()) {
                 return;

@@ -58,7 +58,7 @@ export function useMessagePipelineGetter(): () => MessagePipelineContext {
   const store = useGuaranteedContext(ContextInternal);
   return useCallback(() => store.getState().public, [store]);
 }
-
+// 这个东西才是使用的关键 useMessagePipeline ，player的使用全靠这个来获取
 export function useMessagePipeline<T>(selector: (arg0: MessagePipelineContext) => T): T {
   const store = useGuaranteedContext(ContextInternal);
   return useStore(

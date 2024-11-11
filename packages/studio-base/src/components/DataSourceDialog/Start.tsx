@@ -129,7 +129,7 @@ function DataSourceOption(props: DataSourceOptionProps): JSX.Element {
   const { classes } = useStyles();
   const button = (
     <Button
-      className={classes.connectionButton}
+      className={`${classes.connectionButton} abcs-button`}
       fullWidth
       color="inherit"
       variant="outlined"
@@ -440,6 +440,8 @@ export default function Start(): JSX.Element {
           </SvgIcon>
         ),
         onClick: () => {
+          // window.showOpenFilePicker(options);
+          // 打开本地文件 db3
           dialogActions.dataSource.open("file");
           void analytics.logEvent(AppEvent.DIALOG_SELECT_VIEW, { type: "local" });
         },
@@ -487,6 +489,7 @@ export default function Start(): JSX.Element {
             <Typography variant="h5" gutterBottom>
               {t("openDataSource")}
             </Typography>
+            {/* 测试打开本地文件 */}
             {startItems.map((item) => (
               <DataSourceOption
                 key={item.key}

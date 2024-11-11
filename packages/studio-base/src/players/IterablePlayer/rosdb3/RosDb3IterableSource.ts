@@ -35,17 +35,30 @@ export class RosDb3IterableSource implements IIterableSource {
   public constructor(files: File[]) {
     this.#files = files;
   }
+  /*
+    这段 TypeScript 代码定义了一个异步方法 initialize，用于初始化一个 ROS2 数据源。主要功能包括：
 
+    加载 SQLite WASM 模块：从指定 URL 加载 SQLite 的 WebAssembly 模块。
+    打开数据库文件：创建并打开 SQLite 数据库文件，然后使用这些文件创建一个 Rosbag2 对象。
+    获取时间范围和主题信息：从 Rosbag2 对象中获取数据的时间范围、主题定义和消息计数。
+    检查消息数量：确保至少有一个消息，否则抛出错误。
+    处理主题定义：遍历所有主题定义，检查每个主题的消息类型是否支持，如果不支持则记录问题。
+    构建返回对象：构建并返回一个包含主题、统计信息、时间范围、问题、数据类型等信息的对象。
+  */
   public async initialize(): Promise<Initalization> {
-    console.log("RosDb3IterableSource--initialize");
+    console.log("RosDb3IterableSource--initialize, worker内容主要在这里执行");
+    const aa = new URL("@foxglove/sql.js/dist/sql-wasm.wasm", import.meta.url).toString();
+    console.log('aa--->', aa);
 
     const res = await fetch(
       // foxglove-depcheck-used: babel-plugin-transform-import-meta
       new URL("@foxglove/sql.js/dist/sql-wasm.wasm", import.meta.url).toString(),
     );
+    console.log('res--->', res);
+
     const sqlWasm = await (await res.blob()).arrayBuffer();
     await SqliteSqljs.Initialize({ wasmBinary: sqlWasm });
-
+    // 根子 处理  .db3 文件
     const dbs = this.#files.map((file) => new SqliteSqljs(file));
     const bag = new Rosbag2(dbs);
     await bag.open();
@@ -72,7 +85,7 @@ export class RosDb3IterableSource implements IIterableSource {
     const datatypes: RosDatatypes = new Map([...ROS2_TO_DEFINITIONS, ...basicDatatypes]);
     const messageDefinitionsByTopic: MessageDefinitionsByTopic = {};
     const parsedMessageDefinitionsByTopic: ParsedMessageDefinitionsByTopic = {};
-
+    // 在这
     for (const topicDef of topicDefs) {
       const numMessages = messageCounts.get(topicDef.name);
 

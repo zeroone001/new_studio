@@ -23,8 +23,10 @@ export function useOpenFile(sources: readonly IDataSourceFactory[]): () => Promi
       return [...all, ...source.supportedFileTypes];
     }, []);
   }, [sources]);
-
+  // 这里
   return useCallback(async () => {
+    console.log("allExtensions", allExtensions);
+    // 打开上传rosbag文件的文件窗口，就是这里
     const [fileHandle] = await showOpenFilePicker({
       types: [
         {
@@ -39,8 +41,10 @@ export function useOpenFile(sources: readonly IDataSourceFactory[]): () => Promi
 
     const file = await fileHandle.getFile();
     // Find the first _file_ source which can load our extension
+    // 找到可以加载我们的扩展的第一个_file_源
     const matchingSources = sources.filter((source) => {
       // Only consider _file_ type sources that have a list of supported file types
+      // 仅考虑具有支持的文件类型列表的_file_类型源
       if (!source.supportedFileTypes || source.type !== "file") {
         return false;
       }

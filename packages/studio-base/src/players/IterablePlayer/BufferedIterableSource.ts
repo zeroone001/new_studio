@@ -92,7 +92,8 @@ class BufferedIterableSource extends EventEmitter<EventTypes> implements IIterab
 
   public async initialize(): Promise<Initalization> {
     console.log("BufferedIterableSource--initialize");
-
+    // initialize 这个东西搞了半天在这执行
+    console.log('source.initialize1');
     this.#initResult = await this.#source.initialize();
     return this.#initResult;
   }
@@ -261,7 +262,7 @@ class BufferedIterableSource extends EventEmitter<EventTypes> implements IIterab
           return;
         }
 
-        for (;;) {
+        for (; ;) {
           const item = self.#cache.dequeue();
           if (!item) {
             if (self.#readDone) {

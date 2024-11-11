@@ -93,6 +93,7 @@ function setterValue<T>(action: SetStateAction<T>, value: T): T {
 
 /**
  * Provides various actions to manipulate the workspace state.
+ * 提供各种操作来操纵工作区状态
  */
 export function useWorkspaceActions(): WorkspaceActions {
   const { setState } = useGuaranteedContext(WorkspaceContext);
@@ -179,6 +180,7 @@ export function useWorkspaceActions(): WorkspaceActions {
 
   return useMemo(() => {
     return {
+      // 弹窗的一些点击事件，比如刚进入页面
       dialogActions: {
         dataSource: {
           close: () => {
@@ -192,11 +194,13 @@ export function useWorkspaceActions(): WorkspaceActions {
           },
 
           open: (
+            // selectedDataSourceDialogItem = "file"
             selectedDataSourceDialogItem: DataSourceDialogItem,
             dataSource?: IDataSourceFactory,
           ) => {
             set((draft) => {
               // This cast is necessary to keep typescript from complaining about type depth.
+              // 这种转换是必要的，以防止typescript抱怨类型深度
               (draft as WorkspaceContextStore).dialogs.dataSource.activeDataSource = dataSource;
               draft.dialogs.dataSource.item = selectedDataSourceDialogItem;
               draft.dialogs.dataSource.open = true;
@@ -319,4 +323,4 @@ export function useWorkspaceActions(): WorkspaceActions {
       },
     };
   }, [exportLayoutToFile, importLayoutFromFile, openFile, set]);
-}
+} // end
