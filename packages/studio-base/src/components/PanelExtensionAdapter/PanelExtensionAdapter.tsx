@@ -572,7 +572,7 @@ function PanelExtensionAdapter(
     panelElement.style.width = "100%";
     panelElement.style.height = "100%";
     panelElement.style.overflow = "hidden";
-    panelElement.className = "PanelExtensionAdapter initPanel";
+    panelElement.className = "J_panel_lys PanelExtensionAdapter initPanel";
     panelContainerRef.current.appendChild(panelElement);
 
     // log.info(`Init panel ${panelId}`);
@@ -584,6 +584,7 @@ function PanelExtensionAdapter(
 
       // eslint-disable-next-line no-restricted-syntax
       set onRender(renderFunction: RenderFn | undefined) {
+        // 给 renderFn 赋值
         setRenderFn(() => renderFunction);
       },
     });
@@ -624,12 +625,16 @@ function PanelExtensionAdapter(
         ...style,
       }}
     >
-      位于PanelExtensionAdapter
+      啦啦啦PanelExtensionAdapter
       <PanelToolbar />
       {configTooNew && <PanelConfigVersionError />}
       {props.children}
       {/* 主要结构塞到下面这里了 */}
-      <div style={{ flex: 1, overflow: "hidden" }} ref={panelContainerRef} />
+      <div
+        className="J_panel_parent"
+        style={{ flex: 1, overflow: "hidden" }}
+        ref={panelContainerRef}
+      />
     </div>
   );
 }

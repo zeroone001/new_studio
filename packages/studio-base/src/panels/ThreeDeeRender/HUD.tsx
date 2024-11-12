@@ -66,7 +66,7 @@ export function HUD(props: HUDProps): React.ReactElement {
   }
 
   return (
-    <div className={classes.root}>
+    <div className={`${classes.root} J_HUD`}>
       {notices.map((item, index) => (
         <Chip className={classes.chip} size="small" key={index} label={item.getMessage()} />
       ))}

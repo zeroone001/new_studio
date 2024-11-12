@@ -317,11 +317,13 @@ export function RendererOverlay(props: Props): JSX.Element {
 
   const mousePresenceRef = useRef<HTMLDivElement>(ReactNull);
   const mousePresent = usePanelMousePresence(mousePresenceRef);
+  const htmlContent = "<!-- 底部的统计信息-->";
 
   return (
     <>
       {props.interfaceMode === "image" && <PanelContextMenu getItems={getContextMenuItems} />}
-      <div ref={mousePresenceRef} className={classes.root}>
+      {/* 下面这个是右上角三个小工具 */}
+      <div ref={mousePresenceRef} className={`J_render_overlay_lys ${classes.root}`}>
         {
           // Only show on hover for image panel
           (props.interfaceMode === "3d" || mousePresent) && (

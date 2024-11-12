@@ -1,7 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
-
+//
 import EventEmitter from "eventemitter3";
 import { quat, vec3 } from "gl-matrix";
 import i18next from "i18next";
@@ -282,6 +282,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
     // 使用自定义图层的数量更新“自定义图层”节点标签;不重要
     this.updateCustomLayersCount();
     // 创建渲染器，这里往下才是关键
+    console.log('three--1');
     this.gl = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
@@ -306,7 +307,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       // setSize
       this.gl.setSize(width, height);
     }
-    // 加载模型的 没整明白在哪用了
+    // 加载 模型 的 没整明白在哪用了
     this.modelCache = new ModelCache({
       ignoreColladaUpAxis: config.scene.ignoreColladaUpAxis ?? false,
       meshUpAxis: config.scene.meshUpAxis ?? DEFAULT_MESH_UP_AXIS,
@@ -314,7 +315,9 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       fetchAsset: this.#fetchAsset,
     });
     // scene 场景
+    console.log("three--2");
     this.#scene = new THREE.Scene();
+    console.log("three--3");
     // 从上方照射的白色平行光，强度为 Math.PI
     this.#dirLight = new THREE.DirectionalLight(0xffffff, Math.PI);
     this.#dirLight.position.set(1, 1, 1);
@@ -326,6 +329,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
     this.#dirLight.shadow.camera.near = 0.5;
     this.#dirLight.shadow.camera.far = 500;
     this.#dirLight.shadow.bias = -0.00001;
+    console.log("three--4");
     // 半球光 光源直接放置于场景之上，光照颜色从天空光线颜色渐变到地面光线颜色
     this.#hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5 * Math.PI);
     this.#hemiLight.layers.enableAll();
@@ -342,9 +346,11 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       // 触发左侧的面板配置
       this.#clickHandler(cursorCoords);
     });
+    console.log("three--5");
     // 整了个 new THREE.WebGLRenderTarget
     this.#picker = new Picker(this.gl, this.#scene);
-    // 着色器
+    console.log("three--6");
+    // 着色器 new THREE.ShaderMaterial
     this.#selectionBackdrop = new ScreenOverlay(this);
     this.#selectionBackdropScene = new THREE.Scene();
     this.#selectionBackdropScene.add(this.#selectionBackdrop);
@@ -373,7 +379,9 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
         break;
       }
       case "3d": {
+        console.log("three--7");
         // 相机 都单独搞个类，真是666
+        // new THREE.PerspectiveCamera()
         // class CameraStateSettings extends SceneExtension
         this.cameraHandler = new CameraStateSettings(this, this.#canvas, aspect);
         this.#addSceneExtension(this.cameraHandler);
@@ -410,7 +418,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
     this.setCameraState(config.cameraState);
     // 开始创建场景
     this.animationFrame();
-  }
+  } // constructor end
 
   #onHUDItemsChange = () => {
     this.hudItems = this.hud.getHUDItems();
@@ -433,7 +441,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
   }
   // 处理掉
   public dispose(): void {
-    log.warn(`Disposing renderer`);
+    console.log('Disposing renderer');
     this.#devicePixelRatioMediaQuery?.removeEventListener("change", this.#onDevicePixelRatioChange);
     this.removeAllListeners();
 
@@ -510,9 +518,9 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       resetAllFramesCursor?: boolean;
       clearImageModeExtension?: boolean;
     } = {
-      clearTransforms: false,
-      resetAllFramesCursor: false,
-    },
+        clearTransforms: false,
+        resetAllFramesCursor: false,
+      },
   ): void {
     this.#clearSubscriptionQueues();
     if (clearTransforms === true) {
@@ -539,10 +547,10 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
     lastReadMessage: MessageEvent | undefined;
     cursorTimeReached?: Time;
   } = {
-    index: -1,
-    lastReadMessage: undefined,
-    cursorTimeReached: undefined,
-  };
+      index: -1,
+      lastReadMessage: undefined,
+      cursorTimeReached: undefined,
+    };
 
   #clearSubscriptionQueues(): void {
     for (const subscriptions of this.topicSubscriptions.values()) {
@@ -1194,6 +1202,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       sceneExtension.startFrame(currentTime, renderFrameId, fixedFrameId);
     }
     // 最终的渲染场景，这一行才是关键
+    // renderer.render(scene, camera)
     this.gl.render(this.#scene, camera);
 
     if (this.#selectedRenderable) {

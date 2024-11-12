@@ -62,25 +62,27 @@ export function InteractionContextMenu({
   selectObject,
 }: Props): JSX.Element {
   return (
-    <Menu
-      open
-      onClose={onClose}
-      anchorReference="anchorPosition"
-      anchorPosition={{
-        top: clickedPosition.clientY,
-        left: clickedPosition.clientX,
-      }}
-      MenuListProps={{
-        dense: true,
-      }}
-    >
-      {clickedObjects.map((interactiveObject, index) => (
-        <InteractionContextMenuItem
-          key={index}
-          interactiveObject={interactiveObject}
-          selectObject={selectObject}
-        />
-      ))}
-    </Menu>
+    <div className="J_interaction_context_menu">
+      <Menu
+        open
+        onClose={onClose}
+        anchorReference="anchorPosition"
+        anchorPosition={{
+          top: clickedPosition.clientY,
+          left: clickedPosition.clientX,
+        }}
+        MenuListProps={{
+          dense: true,
+        }}
+      >
+        {clickedObjects.map((interactiveObject, index) => (
+          <InteractionContextMenuItem
+            key={index}
+            interactiveObject={interactiveObject}
+            selectObject={selectObject}
+          />
+        ))}
+      </Menu>
+    </div>
   );
 }

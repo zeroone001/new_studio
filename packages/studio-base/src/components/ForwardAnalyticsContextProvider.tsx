@@ -31,6 +31,10 @@ export function useForwardAnalytics(): ForwardedAnalytics {
  *
  * This component should be rendered in the destination tree, with the `forwardedAnalytics` prop
  * constructed from the `useForwardAnalytics()` hook rendered in the source tree.
+ * 接收并验证 forwardedAnalytics 上下文：确保 forwardedAnalytics 不会改变。
+创建并管理状态存储：使用 useState 创建一个状态存储 store，初始值为 forwardedAnalytics 的当前状态。
+订阅 forwardedAnalytics 的变化：使用 useEffect 订阅 forwardedAnalytics 的变化，并在变化时更新 store 的状态。
+提供上下文：使用 useStore 获取 store 的当前值，并通过 AnalyticsContext.Provider 提供给子组件。
  */
 export function ForwardAnalyticsContextProvider({
   /** Context to forward. Should be the return value from useForwardAnalytics in the outer tree. */

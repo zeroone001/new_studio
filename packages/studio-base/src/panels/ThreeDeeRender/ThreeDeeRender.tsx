@@ -150,7 +150,7 @@ export function ThreeDeeRender(props: {
   );
   // 在这里整的threejs
   useEffect(() => {
-    console.log("ThreeDeeRender-useEffect--->", canvas, configRef, interfaceMode);
+    console.log("在这里整的threejs--->", canvas, configRef, interfaceMode);
 
     const newRenderer = canvas
       ? new Renderer({
@@ -786,7 +786,7 @@ export function ThreeDeeRender(props: {
 
   return (
     <ThemeProvider isDark={colorScheme === "dark"}>
-      <div style={PANEL_STYLE} onKeyDown={onKeyDown}>
+      <div className="J_true_canvas" style={PANEL_STYLE} onKeyDown={onKeyDown}>
         {/* 真正的3D内容所在地 */}
         <canvas
           className="true3Dcontainer"

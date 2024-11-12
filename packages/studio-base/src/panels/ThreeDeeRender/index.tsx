@@ -40,6 +40,9 @@ function initPanel(args: InitPanelArgs, context: BuiltinPanelExtensionContext) {
   const { crash, forwardedAnalytics, interfaceMode, testOptions, customSceneExtensions } = args;
 
   const root = createRoot(context.panelElement);
+  // 在这里 3D的渲染入口
+  // StrictMode 模式，用于检测 React 组件的错误和警告。
+  // CaptureErrorBoundary 捕获所有未处理的错误，并将其发送到错误处理程序。
   root.render(
     <StrictMode>
       <CaptureErrorBoundary onError={crash}>
@@ -54,6 +57,7 @@ function initPanel(args: InitPanelArgs, context: BuiltinPanelExtensionContext) {
       </CaptureErrorBoundary>
     </StrictMode>,
   );
+  // 返回卸载函数：返回一个函数，该函数在调用时会异步卸载根节点。
   return () => {
     setTimeout(() => {
       root.unmount();
@@ -85,6 +89,7 @@ function ThreeDeeRenderAdapter(interfaceMode: InterfaceMode, props: Props) {
 
   const boundInitPanel = useMemo(
     () =>
+      // 这是个啥写法
       initPanel.bind(undefined, {
         crash,
         forwardedAnalytics,
