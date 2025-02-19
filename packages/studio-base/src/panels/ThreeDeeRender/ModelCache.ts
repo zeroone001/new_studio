@@ -44,7 +44,7 @@ const GLTF_MIME_TYPES = ["model/gltf", "model/gltf-binary", "model/gltf+json"];
 const STL_MIME_TYPES = ["model/stl", "model/x.stl-ascii", "model/x.stl-binary", "application/sla"];
 const DAE_MIME_TYPES = ["model/vnd.collada+xml"];
 const OBJ_MIME_TYPES = ["model/obj", "text/prs.wavefront-obj"];
-
+// 开始
 export class ModelCache {
   #textDecoder = new TextDecoder();
   #models = new Map<string, Promise<LoadedModel | undefined>>();
@@ -57,14 +57,24 @@ export class ModelCache {
     this.#edgeMaterial = options.edgeMaterial;
     this.#fetchAsset = options.fetchAsset;
   }
-
+  /**
+   * 异步加载模型
+   *
+   * 本函数尝试从给定的URL加载模型如果模型已缓存，则返回缓存的模型
+   * 否则，将尝试加载并解析模型，同时将其添加到缓存中如果加载过程中出现错误，将调用错误回调函数报告错误
+   *
+   * @param url 模型的URL
+   * @param opts 模型加载选项
+   * @param reportError 错误回调函数，用于报告加载过程中出现的错误
+   * @returns 返回一个Promise，解析为加载的模型或在出现错误时返回undefined
+ */
   public async load(
     url: string,
     opts: LoadModelOptions,
     reportError: ErrorCallback,
   ): Promise<LoadedModel | undefined> {
     console.log(`ModelCache Loading model ${url}`);
-
+    // #models 是个Map
     let promise = this.#models.get(url);
     if (promise) {
       return await promise;
@@ -86,7 +96,7 @@ export class ModelCache {
     options: LoadModelOptions,
     reportError: ErrorCallback,
   ): Promise<LoadedModel> {
-    console.log(`ModelCache Loading loadModel ${url}`);
+    console.log(`loadModel---->>>>>> ${url}`);
 
     const GLB_MAGIC = 0x676c5446; // "glTF"
 
@@ -100,6 +110,7 @@ export class ModelCache {
     const contentType = options.overrideMediaType ?? asset.mediaType ?? "";
 
     // Check if this is a glTF .glb or .gltf file
+    // 检查这是glTF .glb还是.glTF文件
     if (
       GLB_MAGIC === view.getUint32(0, false) ||
       GLTF_MIME_TYPES.includes(contentType) ||
@@ -146,11 +157,15 @@ export class ModelCache {
 
     const manager = new THREE.LoadingManager(undefined, undefined, onError);
     manager.setURLModifier(rewriteUrl);
+    // 关键代码
     const gltfLoader = new GLTFLoader(manager);
     gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+    // draco 是一个由谷歌开源的3D数据压缩库
+    // Draco库旨在大幅加速3D数据的编码、传输和解码过程
     gltfLoader.setDRACOLoader(this.#getDracoLoader(manager));
 
     manager.itemStart(url);
+    // 关键代码 读取gltf 模型文件
     const gltf = await gltfLoader.loadAsync(url);
     manager.itemEnd(url);
 
@@ -296,6 +311,8 @@ export class ModelCache {
       (dracoLoader as { _loadLibrary?: (url: string, responseType: string) => unknown })[
         "_loadLibrary"
       ] = async function (url: string, responseType: string) {
+        console.log(`ModelCache Loading draco ${url}`);
+
         if (url === "draco_wasm_wrapper.js" && responseType === "text") {
           return dracoWasmWrapperJs;
         } else if (url === "draco_decoder.wasm" && responseType === "arraybuffer") {
@@ -318,7 +335,7 @@ export class ModelCache {
     this.#dracoLoader?.dispose();
     this.#dracoLoader = undefined;
   }
-}
+} // ModelCache END
 
 export const EDGE_LINE_SEGMENTS_NAME = "edges";
 function addEdges(model: LoadedModel, edgeMaterial: THREE.Material): LoadedModel {

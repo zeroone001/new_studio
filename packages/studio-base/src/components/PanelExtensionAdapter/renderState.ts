@@ -99,6 +99,7 @@ function initRenderStateBuilder(): BuildRenderStateFn {
 
     // Should render indicates whether any fields of render state are updated
     let shouldRender = false;
+    console.log('我的妈呀，这里竟然还有，activeData就在这');
 
     // Hoisted active data to shorten some of the code below that repeatedly uses active data
     const activeData = playerState?.activeData;

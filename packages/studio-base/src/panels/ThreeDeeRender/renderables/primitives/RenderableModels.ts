@@ -185,7 +185,7 @@ export class RenderableModels extends RenderablePrimitive {
             renderable = await this.#createRenderable(
               primitive,
               (model) => model.url,
-              (_url) => {},
+              (_url) => { },
             );
           } catch (err) {
             this.renderer.settings.errors.add(
@@ -261,9 +261,14 @@ export class RenderableModels extends RenderablePrimitive {
     settings: LayerSettingsEntity,
     receiveTime: bigint,
   ): void {
+    console.log('update--->11');
+
     super.update(topic, entity, settings, receiveTime);
     if (entity) {
+      console.log('我在找entity.models', entity);
+
       const lifetimeNs = toNanoSec(entity.lifetime);
+      // 0n 是一个 BigInt 类型的值。
       this.userData.expiresAt = lifetimeNs === 0n ? undefined : receiveTime + lifetimeNs;
       this.#updateModels(entity.models);
     }
@@ -291,6 +296,7 @@ export class RenderableModels extends RenderablePrimitive {
     url: string,
     opts: { overrideMediaType?: string },
   ): Promise<LoadedModel | undefined> {
+    console.log('测试测试2--->');
     const cachedModel = await this.renderer.modelCache.load(
       url,
       { overrideMediaType: opts.overrideMediaType },
@@ -321,8 +327,8 @@ export class RenderableModels extends RenderablePrimitive {
     const overrideColor = this.userData.settings.color
       ? stringToRgba(tempRgba, this.userData.settings.color)
       : primitive.override_color
-      ? primitive.color
-      : undefined;
+        ? primitive.color
+        : undefined;
     if (overrideColor) {
       if (!renderable.material) {
         renderable.material = new THREE.MeshStandardMaterial({

@@ -32,6 +32,7 @@ export class RenderableMeshResource extends RenderableMarker {
     options?: { referenceUrl?: string },
   ) {
     super(topic, marker, receiveTime, renderer);
+    console.log("RenderableMeshResource--->22", marker);
 
     this.#material = makeStandardMaterial(marker.color);
     this.#referenceUrl = options?.referenceUrl;
@@ -75,6 +76,8 @@ export class RenderableMeshResource extends RenderableMarker {
         disposeMeshesRecursive(this.#mesh);
         this.#mesh = undefined;
       }
+      console.log("RenderableMeshResource--->33", marker.mesh_resource);
+
       this.#loadModel(marker.mesh_resource, opts)
         .then((mesh) => {
           if (!mesh) {
@@ -125,6 +128,8 @@ export class RenderableMeshResource extends RenderableMarker {
     url: string,
     opts: { useEmbeddedMaterials: boolean },
   ): Promise<THREE.Group | THREE.Scene | undefined> {
+    console.log('测试测试');
+
     const cachedModel = await this.renderer.modelCache.load(
       url,
       { referenceUrl: this.#referenceUrl },

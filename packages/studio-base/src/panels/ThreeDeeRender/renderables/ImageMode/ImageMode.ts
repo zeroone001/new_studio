@@ -126,15 +126,14 @@ const DEFAULT_CONFIG = {
 type ConfigWithDefaults = ImageModeConfig & typeof DEFAULT_CONFIG;
 export class ImageMode
   extends SceneExtension<ImageRenderable, ImageModeEventMap>
-  implements ICameraHandler
-{
+  implements ICameraHandler {
   public static extensionId = "foxglove.ImageMode";
   #camera: ImageModeCamera;
   #cameraModel:
     | {
-        model: PinholeCameraModel;
-        info: CameraInfo;
-      }
+      model: PinholeCameraModel;
+      info: CameraInfo;
+    }
     | undefined;
 
   readonly #annotations: ImageAnnotations;
@@ -342,6 +341,8 @@ export class ImageMode
    * Also auto-select a new calibration topic to match the new image topic.
    */
   #handleTopicsChanged = () => {
+    console.log('真是深啊');
+
     if (this.getImageModeSettings().imageTopic != undefined) {
       return;
     }

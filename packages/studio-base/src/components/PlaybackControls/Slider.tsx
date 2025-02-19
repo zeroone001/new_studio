@@ -49,11 +49,12 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
+// 这个竟然没用到
 function defaultRenderSlider(value: number | undefined, className: string): ReactNode {
   if (value == undefined || isNaN(value)) {
     return ReactNull;
   }
-  return <div className={className} style={{ width: `${value * 100}%` }} />;
+  return <div id="J_slider2" className={className} style={{ width: `${value * 100}%` }} />;
 }
 
 export default function Slider(props: Props): JSX.Element {
@@ -166,6 +167,7 @@ export default function Slider(props: Props): JSX.Element {
 
   return (
     <div
+      id="JJ_slider"
       ref={elRef}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

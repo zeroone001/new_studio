@@ -240,8 +240,12 @@ export class IterablePlayer implements Player {
     // 如果我们空闲，我们可以开始玩，如果我们有下一个状态排队，我们让那个状态
     // 完成比赛，我们就可以上场了
     if (this.#state === "idle" && (!this.#nextState || this.#nextState === "idle")) {
+      console.log('startPlayImpl---->3-1');
+
       this.#setState("play");
     } else {
+      console.log('startPlayImpl---->3-2');
+
       this.#queueEmitState(); // 将isPlaying状态更新为UI
     }
   }
@@ -480,14 +484,14 @@ export class IterablePlayer implements Player {
     this.#isPlaying = false;
   }
 
-  // 初始化源和玩家成员
+  // 初始化源 和 play 成员
   async #stateInitialize(): Promise<void> {
     // 这个函数确实是先触发的，在上传本地文件的时候就触发了
     console.log("初始化stateInitialize");
 
     // 指示初始化开始的发射状态
     this.#queueEmitState();
-
+    // 这是 关键 获取要播放的数据
     try {
       const {
         start,
@@ -500,6 +504,19 @@ export class IterablePlayer implements Player {
         datatypes,
         name,
       } = await this.#bufferedSource.initialize();
+      console.log(`初始化stateInitialize222`);
+      console.log('start:', start);
+      console.log('end:', end);
+      console.log('topics:', topics);
+      // profile ： ros2
+      console.log('profile:', profile);
+      //
+      console.log('topicStats:', topicStats);
+      console.log('problems:', problems);
+      console.log('publishersByTopic:', publishersByTopic);
+      // datatypes 这里面数据塞得满满的
+      console.log('datatypes:', datatypes);
+      console.log('name:', name);
 
       // 在初始化之前，seekTarget可能已设置为越界值
       //这使值处于界限内
@@ -654,7 +671,7 @@ export class IterablePlayer implements Player {
     }
 
     log.debug("Initializing forward iterator from", this.#start);
-    // 主要是这个
+    // 主要是这个 关键
     this.#playbackIterator = this.#bufferedSource.messageIterator({
       topics: this.#allTopics,
       start: this.#start,
@@ -860,7 +877,7 @@ export class IterablePlayer implements Player {
    * 这个是视频播放的 关键
    * */
   async #tick(): Promise<void> {
-    console.log("tick---->");
+    console.log("视频播放关键函数 tick---->");
 
     if (!this.#isPlaying) {
       return;
@@ -972,7 +989,7 @@ export class IterablePlayer implements Player {
         if (!this.#playbackIterator) {
           throw new Error("Invariant. this._playbackIterator is undefined.");
         }
-        console.log("for");
+        console.log("for------>");
 
         const result = await this.#playbackIterator.next();
         if (result.done === true || this.#nextState) {
@@ -1028,7 +1045,7 @@ export class IterablePlayer implements Player {
     this.#currentTime = end;
     this.#messages = msgEvents;
     console.log("触发 #queueEmitState");
-
+    // 这是关键
     this.#queueEmitState();
 
     // 他的滴答声已经到了untilTime的末尾，所以我们回去暂停
@@ -1083,7 +1100,7 @@ export class IterablePlayer implements Player {
   } // end
   // 触发 ‘play’ 后，执行下面函数
   async #statePlay() {
-    console.log("statePlay---->");
+    console.log("statePlay---->111");
 
     this.#presence = PlayerPresence.PRESENT;
 
@@ -1102,12 +1119,12 @@ export class IterablePlayer implements Player {
       // 不断地视频 这个while才是不断地模拟视频进度条的关键所在
       // 点击暂停后 this.#nextState就有值了，所以while就不成立了，所以while结束
       while (this.#isPlaying && !this.#hasError && !this.#nextState) {
-        console.log("statePlay: tick");
+        console.log("while 开始循环，视频开始播放");
 
         if (compare(this.#currentTime, this.#end) >= 0) {
-          console.log("statePlay: playback has ended");
+          console.log("播放已结束");
 
-          // 播放已结束。重置内部跟踪器以保持播放速度
+          // 播放已结束  重置内部跟踪器以保持播放速度
           this.#lastTickMillis = undefined;
           this.#lastRangeMillis = undefined;
           this.#lastStamp = undefined;
@@ -1149,7 +1166,7 @@ export class IterablePlayer implements Player {
 
         const time = Date.now() - start;
         // 确保我们至少睡了16毫秒左右（大约1帧）
-        //给UI一些呼吸的时间，而不是在紧张的循环中燃烧
+        // 给UI一些呼吸的时间，而不是在紧张的循环中燃烧
         if (time < 16) {
           console.log("time < 16");
           await delay(16 - time);

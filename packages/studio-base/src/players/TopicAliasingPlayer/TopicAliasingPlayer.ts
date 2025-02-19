@@ -108,7 +108,7 @@ export class TopicAliasingPlayer implements Player {
   public async callService(service: string, request: unknown): Promise<unknown> {
     return await this.#player.callService(service, request);
   }
-
+  // 这是点击播放事件，触发的第一步
   public startPlayback?(): void {
     console.log("startPlayback1");
     this.#player.startPlayback?.();
@@ -185,7 +185,7 @@ export class TopicAliasingPlayer implements Player {
 
   async #onPlayerState(playerState: PlayerState) {
     // playerState 就是上层IterablePlayer传回来的data
-    console.log("onPlayerState--->", playerState);
+    console.log("onPlayerState--->上层IterablePlayer传回来的data", playerState);
 
     // 如果我们已经在发射一个玩家状态，请避免发射另一个状态
     //这是对全局变量排放的防范
@@ -224,7 +224,7 @@ export class TopicAliasingPlayer implements Player {
 
       // 使用最新别名处理玩家状态
       const newState = this.#stateProcessor.process(playerState, this.#subscriptions);
-
+      console.log("newState", newState);
       await listener(newState);
     });
   }

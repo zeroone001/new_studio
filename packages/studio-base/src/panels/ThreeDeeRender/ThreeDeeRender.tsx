@@ -83,7 +83,7 @@ export function ThreeDeeRender(props: {
   /** 允许通过自定义扩展插入或覆盖默认扩展 */
   customSceneExtensions?: DeepPartial<SceneExtensionConfig>;
 }): JSX.Element {
-  console.log("ThreeDeeRender function");
+  // console.log("ThreeDeeRender function");
 
   const { context, interfaceMode, testOptions, customSceneExtensions } = props;
   const {
@@ -167,6 +167,7 @@ export function ThreeDeeRender(props: {
           testOptions,
         })
       : undefined;
+    // 这就是 render
     setRenderer(newRenderer);
     rendererRef.current = newRenderer;
     return () => {
@@ -367,8 +368,13 @@ export function ThreeDeeRender(props: {
 
   // 使用context.watch和context.onRender建立到消息管道的连接
   useLayoutEffect(() => {
+    // 3D
+    console.log("3D 渲染一切的关键就在这里，我的妈呀，数据驱动，依赖 playState");
+
     context.onRender = (renderState: Immutable<RenderState>, done) => {
       ReactDOM.unstable_batchedUpdates(() => {
+        console.log("就在这里数据驱动3D做出变化", renderState);
+
         if (renderState.currentTime) {
           setCurrentTime(renderState.currentTime);
         }
@@ -398,11 +404,11 @@ export function ThreeDeeRender(props: {
         // Watch for any changes in the map of observed parameters
         setParameters(renderState.parameters);
 
-        // currentFrame has messages on subscribed topics since the last render call
+        // currentFrame自上次呈现调用以来有关于订阅主题的消息
         setCurrentFrameMessages(renderState.currentFrame);
 
         // allFrames在所有框架中都有关于预加载主题的消息（加载时）
-        console.log("allFrames", renderState.allFrames);
+        // console.log("allFrames", renderState.allFrames);
         setAllFrames(renderState.allFrames);
       });
     };

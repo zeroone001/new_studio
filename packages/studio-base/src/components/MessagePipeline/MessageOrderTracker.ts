@@ -45,6 +45,7 @@ class MessageOrderTracker {
   #incorrectMessages: MessageEvent[] = [];
 
   public update(playerState: PlayerState): PlayerProblem[] {
+    console.log("点击播放后找到的位置");
     if (!playerState.activeData) {
       return [];
     }
@@ -68,6 +69,8 @@ class MessageOrderTracker {
     if (this.#lastMessages !== messages || this.#lastCurrentTime !== currentTime) {
       this.#lastMessages = messages;
       this.#lastCurrentTime = currentTime;
+      // 这个循环很重要
+      console.log("messages关键中的关键", messages);
       for (const message of messages) {
         const messageTime = message.receiveTime;
 

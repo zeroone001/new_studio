@@ -355,44 +355,44 @@ export class Urdfs extends SceneExtension<UrdfRenderable> {
           url:
             (config.sourceType ?? DEFAULT_CUSTOM_SETTINGS.sourceType) === "url"
               ? {
-                  label: "URL",
-                  input: "string",
-                  placeholder: "package://",
-                  help: "package:// URL or http(s) URL pointing to a Unified Robot Description Format (URDF) XML file",
-                  value: config.url ?? DEFAULT_CUSTOM_SETTINGS.url,
-                }
+                label: "URL",
+                input: "string",
+                placeholder: "package://",
+                help: "package:// URL or http(s) URL pointing to a Unified Robot Description Format (URDF) XML file",
+                value: config.url ?? DEFAULT_CUSTOM_SETTINGS.url,
+              }
               : undefined,
           filePath:
             config.sourceType === "filePath"
               ? {
-                  label: "File path",
-                  input: "string",
-                  help: "Absolute file path (desktop app only)",
-                  value: config.filePath ?? DEFAULT_CUSTOM_SETTINGS.filePath,
-                  disabled: !isDesktopApp(),
-                }
+                label: "File path",
+                input: "string",
+                help: "Absolute file path (desktop app only)",
+                value: config.filePath ?? DEFAULT_CUSTOM_SETTINGS.filePath,
+                disabled: !isDesktopApp(),
+              }
               : undefined,
           topic:
             config.sourceType === "topic"
               ? {
-                  label: "Topic",
-                  input: "autocomplete",
-                  value: config.topic ?? DEFAULT_CUSTOM_SETTINGS.topic,
-                  items: filterMap(this.renderer.topics ?? [], (_topic) =>
-                    URDF_TOPIC_SCHEMAS.has(_topic.schemaName) ? _topic.name : undefined,
-                  ),
-                }
+                label: "Topic",
+                input: "autocomplete",
+                value: config.topic ?? DEFAULT_CUSTOM_SETTINGS.topic,
+                items: filterMap(this.renderer.topics ?? [], (_topic) =>
+                  URDF_TOPIC_SCHEMAS.has(_topic.schemaName) ? _topic.name : undefined,
+                ),
+              }
               : undefined,
           parameter:
             config.sourceType === "param"
               ? {
-                  label: "Parameter",
-                  input: "autocomplete",
-                  value: config.parameter ?? DEFAULT_CUSTOM_SETTINGS.parameter,
-                  items: filterMap(this.renderer.parameters ?? [], ([paramName, value]) =>
-                    typeof value === "string" ? paramName : undefined,
-                  ),
-                }
+                label: "Parameter",
+                input: "autocomplete",
+                value: config.parameter ?? DEFAULT_CUSTOM_SETTINGS.parameter,
+                items: filterMap(this.renderer.parameters ?? [], ([paramName, value]) =>
+                  typeof value === "string" ? paramName : undefined,
+                ),
+              }
               : undefined,
           label: {
             label: "Label",
@@ -1088,6 +1088,8 @@ function createRenderable(args: {
       // Use embedded materials if the mesh is a Collada file
       const embedded = isCollada ? EmbeddedMaterialUsage.Use : EmbeddedMaterialUsage.Ignore;
       const marker = createMeshMarker(frameId, pose, embedded, visual.geometry, baseUrl, color);
+      console.log('mesh marker---->44');
+
       return new RenderableMeshResource(name, marker, undefined, renderer, {
         referenceUrl: baseUrl,
       });

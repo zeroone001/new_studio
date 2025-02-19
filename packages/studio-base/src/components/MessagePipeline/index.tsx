@@ -248,6 +248,8 @@ function createPlayerListener(args: {
   listener: (state: PlayerState) => Promise<void>;
   cleanupListener: () => void;
 } {
+  console.log("来看看这个函数，有惊喜");
+
   const { msPerFrameRef, promisesToWaitForRef, store } = args;
   const updateState = store.getState().dispatch;
   const messageOrderTracker = new MessageOrderTracker();
@@ -314,7 +316,8 @@ function createPlayerListener(args: {
       store.getState().reset();
     }
     prevPlayerId = listenerPlayerState.playerId;
-    // 更新store的state
+    // 更新 store的 state
+    console.log("一定要看看这个位置，下面这个代码，数据驱动就在这");
     updateState({
       type: "update-player-state",
       playerState: newPlayerState, // 关键竟然在这个位置

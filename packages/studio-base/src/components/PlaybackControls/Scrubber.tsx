@@ -137,13 +137,16 @@ export default function Scrubber(props: Props): JSX.Element {
       if (val == undefined) {
         return undefined;
       }
-      return <div className={classes.marker} style={{ left: `${val * 100}%` }} />;
+      return (
+        <div id="J_slider_left" className={classes.marker} style={{ left: `${val * 100}%` }} />
+      );
     },
     [classes.marker],
   );
 
   const min = startTime && toSec(startTime);
   const max = endTime && toSec(endTime);
+  // 这个是指针的长度值
   const fraction =
     currentTime && startTime && endTime
       ? toSec(subtractTimes(currentTime, startTime)) / toSec(subtractTimes(endTime, startTime))

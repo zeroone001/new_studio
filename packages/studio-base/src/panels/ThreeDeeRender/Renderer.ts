@@ -188,6 +188,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
   #dirLight: THREE.DirectionalLight;
   #hemiLight: THREE.HemisphereLight;
   public input: Input;
+  // THREE.LineBasicMaterial是一种非常基础的材质，它不具备复杂的光照模型，因此不会根据光源的位置改变颜色或亮度
   public readonly outlineMaterial = new THREE.LineBasicMaterial({ dithering: true });
   public readonly instancedOutlineMaterial = new InstancedLineMaterial({ dithering: true });
 
@@ -308,6 +309,8 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
       this.gl.setSize(width, height);
     }
     // 加载 模型 的 没整明白在哪用了
+    // 模型在这，不显山不漏水的
+
     this.modelCache = new ModelCache({
       ignoreColladaUpAxis: config.scene.ignoreColladaUpAxis ?? false,
       meshUpAxis: config.scene.meshUpAxis ?? DEFAULT_MESH_UP_AXIS,
@@ -733,7 +736,7 @@ export class Renderer extends EventEmitter<RendererEvents> implements IRenderer 
     schemaNames: Iterable<string>,
     subscription: RendererSubscription<T>,
   ): void {
-    console.log("schemaNames", schemaNames);
+    // console.log("schemaNames", schemaNames);
     for (const schemaName of schemaNames) {
       let handlers = this.schemaSubscriptions.get(schemaName);
       if (!handlers) {

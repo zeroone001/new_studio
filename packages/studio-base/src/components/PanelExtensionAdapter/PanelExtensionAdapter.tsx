@@ -223,6 +223,7 @@ function PanelExtensionAdapter(
     if (!renderFn || !isPanelInitializedRef.current) {
       return;
     }
+    console.log("这里把playerState 竟然解构了，面目全非呀");
 
     const renderState = buildRenderState({
       appSettings,
@@ -284,7 +285,7 @@ function PanelExtensionAdapter(
     sharedPanelState,
     sortedTopics,
     watchedFields,
-  ]);
+  ]); // useLayoutEffect
 
   const updatePanelSettingsTree = usePanelSettingsTreeUpdate();
 
@@ -471,7 +472,7 @@ function PanelExtensionAdapter(
             return await getMessagePipelineContext().callService(service, request);
           }
         : undefined,
-
+      // 在这，我的妈呀
       unstable_fetchAsset: async (uri, options) => {
         if (!isMounted()) {
           throw new Error("Asset fetch after panel was unmounted");
@@ -585,6 +586,7 @@ function PanelExtensionAdapter(
       // eslint-disable-next-line no-restricted-syntax
       set onRender(renderFunction: RenderFn | undefined) {
         // 给 renderFn 赋值
+        console.log("渲染的关键就在这里啊");
         setRenderFn(() => renderFunction);
       },
     });

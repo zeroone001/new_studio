@@ -139,6 +139,8 @@ export class Images extends SceneExtension<ImageRenderable> {
    * Update cameraInfoTopics cache with latest set of camera info messages
    */
   #handleTopicsChanged = () => {
+    console.log('6啊');
+
     this.#cameraInfoTopics = new Set();
     for (const topic of this.renderer.topics ?? []) {
       if (
@@ -316,8 +318,8 @@ export class Images extends SceneExtension<ImageRenderable> {
       const newCameraInfoTopic =
         prefix != undefined
           ? filterMap(this.#cameraInfoTopics, (topic) =>
-              topic.startsWith(prefix) ? topic : undefined,
-            ).sort()[0]
+            topic.startsWith(prefix) ? topic : undefined,
+          ).sort()[0]
           : undefined;
       settings.cameraInfoTopic = newCameraInfoTopic;
       renderable.setSettings(settings);
